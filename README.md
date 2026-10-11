@@ -148,6 +148,9 @@ bash tests/manifest_test.sh
   `.claude-plugin/marketplace.json` и `.agents/plugins/marketplace.json`.
   В Codex-манифесте задайте `skills: "./skills/"`, имя и автора согласуйте
   с Claude Code-манифестом; `version` не добавляйте.
+  При расширении списка обновите `EXPECTED` и список обхода в
+  `tests/manifest_test.sh`, а также фикстуры и ожидаемые результаты в
+  `tests/manifest_validation_test.sh`.
 
 Проверка: `claude plugin validate .`
 
