@@ -1,0 +1,56 @@
+{
+  "name": "cdd",
+  "interface": {
+    "displayName": "Cringe Driven Development"
+  },
+  "plugins": [
+    {
+      "name": "pulumi",
+      "source": {
+        "source": "local",
+        "path": "./plugins/pulumi"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "ansible",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ansible"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "selectel-ops",
+      "source": {
+        "source": "local",
+        "path": "./plugins/selectel-ops"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "cdd-tasks",
+      "source": {
+        "source": "local",
+        "path": "./plugins/cdd-tasks"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

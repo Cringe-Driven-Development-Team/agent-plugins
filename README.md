@@ -1,13 +1,13 @@
 # claude-plugins
 
-Маркетплейс плагинов Claude Code организации Cringe-Driven-Development-Team (`cdd`). Здесь лежат
+Маркетплейс плагинов Claude Code и Codex организации Cringe-Driven-Development-Team (`cdd`). Здесь лежат
 отобранные скиллы — чтобы не отбирать их заново в каждом репо и у каждого человека.
 
 Правило: сюда попадает то, что приходится собирать самим — подмножества чужих плагинов и свои
 скиллы. Целые сторонние плагины подключаются напрямую из их маркетплейсов
 (см. [рекомендуемые](#рекомендуемые-сторонние-плагины)).
 
-## Подключение в репо
+## Подключение в Claude Code
 
 В `.claude/settings.json` репо (коммитится в git):
 
@@ -27,6 +27,50 @@
 
 Включайте только нужные репо плагины. При открытии репо Claude Code предложит довериться
 маркетплейсу и поставить плагины. Новые версии: `/plugin marketplace update cdd`.
+
+## Подключение в Codex
+
+Проверенный клиент — Codex CLI **0.162.1**. Зарегистрируйте GitHub-маркетплейс:
+
+```bash
+codex plugin marketplace add Cringe-Driven-Development-Team/claude-plugins
+codex plugin marketplace list
+codex plugin list
+```
+
+Доступны четыре селектора: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
+`cdd-tasks@cdd`. Установите нужные плагины, например:
+
+```bash
+codex plugin add pulumi@cdd
+```
+
+Откройте проект в Codex и подтвердите доверие ему. В `.codex/config.toml`
+проекта включите установленный плагин:
+
+```toml
+[plugins."pulumi@cdd"]
+enabled = true
+```
+
+Для остальных выбранных плагинов добавьте такие же секции с их селекторами.
+В доверенном проекте Codex обнаруживает навыки из установленного
+`plugins/cache/cdd/`: Pulumi — 6, Ansible — 2, Selectel — 1, CDD Tasks — 1,
+всего 10. При проверке через app-server используйте свежий `skills/list`
+с `cwds` проекта и `forceReload: true`; считайте только навыки CDD по
+`pluginId` и пути кэша. Подробности клиентской проверки и обновления —
+в [отчёте приёмки](docs/superpowers/verification/2026-10-11-codex-marketplace.md).
+
+После изменения Git-маркетплейса обновите его и откройте новую сессию Codex:
+
+```bash
+codex plugin marketplace upgrade cdd
+```
+
+На проверенном CLI 0.162.1 эта команда обновила установленный плагин,
+включая вложенный справочник и новый навык в `skills/`; повторный
+`codex plugin add` не потребовался. Свежий app-server обнаружил новый навык
+без изменения имени, версии или манифеста плагина.
 
 ## Каталог
 
@@ -53,11 +97,21 @@ scripts/sync.sh --update   # коммиты источников → HEAD, ск�
 git diff                   # прочитать, что изменилось в скиллах
 ```
 
-Изменения — через PR. `version` в `plugin.json` не задаём: версией служит коммит, и после
-мержа обновления приходят всем по `/plugin marketplace update cdd`. Скиллы апстримов руками не правим: следующий `sync.sh` затрёт правки.
+Изменения — через PR. `version` в манифестах не задаём: версией служит коммит.
+Для Claude Code обновляйте маркетплейс командой `/plugin marketplace update cdd`.
+Порядок обновления установленной копии Codex приведён в
+[разделе подключения](#подключение-в-codex).
+Скиллы апстримов руками не правим: следующий `sync.sh` затрёт правки.
 Нужна своя версия — отдельный скилл в том же плагине.
 
-Зависимости: `bash`, `git`, `jq`. Тесты: `bash tests/sync_test.sh && bash tests/manifest_test.sh && bash plugins/pulumi/tests/check_docs.sh && bash plugins/ansible/tests/check_docs.sh && bash plugins/cdd-tasks/tests/check_docs.sh`;
+Зависимости: `bash`, `git`, `jq`. Проверка двух каталогов и манифестов:
+
+```bash
+bash tests/manifest_validation_test.sh
+bash tests/manifest_test.sh
+```
+
+Остальные тесты: `bash tests/sync_test.sh && bash plugins/pulumi/tests/check_docs.sh && bash plugins/ansible/tests/check_docs.sh && bash plugins/cdd-tasks/tests/check_docs.sh`;
 `selectel-ops` — `cd plugins/selectel-ops && python3 -m unittest discover -s tests -t . && bash tests/check_docs.sh`.
 
 Отдельно, не в этой цепочке — оценка поведения скиллов живыми вызовами модели (платно,
@@ -85,11 +139,18 @@ git diff                   # прочитать, что изменилось в 
   затем `scripts/sync.sh`. Если скилл читает файлы из корня своего плагина — `pluginFiles`
   (пример — `ansible-good-practices`).
 - **Свой:** `plugins/<плагин>/skills/<имя>/SKILL.md`. `sync.sh` его не трогает.
+  Codex сканирует существующий `skills/`; перечислять новый навык в манифесте не нужно.
 - **Убрать или переименовать скилл из апстрима:** поправить `upstream.json` и удалить старый
   `plugins/<плагин>/skills/<имя>/` руками — `sync.sh` сам ничего не удаляет, но предупреждает
   о каталогах с лицензией апстрима, которых нет в `upstream.json`.
-- **Новый плагин:** `plugins/<плагин>/.claude-plugin/plugin.json` и запись в
-  `.claude-plugin/marketplace.json`.
+- **Новый плагин:** два манифеста — `plugins/<плагин>/.claude-plugin/plugin.json`
+  и `plugins/<плагин>/.codex-plugin/plugin.json`; две записи в каталогах —
+  `.claude-plugin/marketplace.json` и `.agents/plugins/marketplace.json`.
+  В Codex-манифесте задайте `skills: "./skills/"`, имя и автора согласуйте
+  с Claude Code-манифестом; `version` не добавляйте.
+  При расширении списка обновите `EXPECTED` и список обхода в
+  `tests/manifest_test.sh`, а также фикстуры и ожидаемые результаты в
+  `tests/manifest_validation_test.sh`.
 
 Проверка: `claude plugin validate .`
 
