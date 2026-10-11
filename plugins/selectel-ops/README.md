@@ -20,7 +20,7 @@
 ## Установка
 
 ```text
-/plugin marketplace add Cringe-Driven-Development-Team/claude-plugins
+/plugin marketplace add Cringe-Driven-Development-Team/agent-plugins
 /plugin install selectel-ops@cdd
 ```
 
@@ -47,7 +47,7 @@ python3 ~/.claude/plugins/marketplaces/cdd/plugins/selectel-ops/skills/selectel-
 Requires Python 3.8+. Optional: `pyyaml` (to read `clouds.yaml`) and `python-openstackclient`.
 
 ```text
-/plugin marketplace add Cringe-Driven-Development-Team/claude-plugins
+/plugin marketplace add Cringe-Driven-Development-Team/agent-plugins
 /plugin install selectel-ops@cdd
 ```
 

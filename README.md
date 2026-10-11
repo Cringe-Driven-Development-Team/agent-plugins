@@ -1,7 +1,11 @@
-# claude-plugins
+# agent-plugins
 
 Маркетплейс плагинов Claude Code и Codex организации Cringe-Driven-Development-Team (`cdd`). Здесь лежат
 отобранные скиллы — чтобы не отбирать их заново в каждом репо и у каждого человека.
+
+Ранее репозиторий назывался `claude-plugins`. В конфигурациях подключения используйте
+`Cringe-Driven-Development-Team/agent-plugins`; имя маркетплейса `cdd` и селекторы
+плагинов, например `pulumi@cdd`, сохраняются.
 
 Правило: сюда попадает то, что приходится собирать самим — подмножества чужих плагинов и свои
 скиллы. Целые сторонние плагины подключаются напрямую из их маркетплейсов
@@ -14,7 +18,7 @@
 ```json
 {
   "extraKnownMarketplaces": {
-    "cdd": { "source": { "source": "github", "repo": "Cringe-Driven-Development-Team/claude-plugins" } }
+    "cdd": { "source": { "source": "github", "repo": "Cringe-Driven-Development-Team/agent-plugins" } }
   },
   "enabledPlugins": {
     "pulumi@cdd": true,
@@ -33,7 +37,7 @@
 Проверенный клиент — Codex CLI **0.162.1**. Зарегистрируйте GitHub-маркетплейс:
 
 ```bash
-codex plugin marketplace add Cringe-Driven-Development-Team/claude-plugins
+codex plugin marketplace add Cringe-Driven-Development-Team/agent-plugins
 codex plugin marketplace list
 codex plugin list
 ```
