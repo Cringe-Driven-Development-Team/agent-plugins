@@ -21,7 +21,7 @@
 ```json
 {
   "extraKnownMarketplaces": {
-    "cdd": { "source": { "source": "github", "repo": "Cringe-Driven-Development-Team/claude-plugins" } }
+    "cdd": { "source": { "source": "github", "repo": "Cringe-Driven-Development-Team/agent-plugins" } }
   },
   "enabledPlugins": {
     "cdd-tasks@cdd": true
