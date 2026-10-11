@@ -1,6 +1,6 @@
 # Маркетплейс CDD для Codex
 
-Дата: 2026-10-11. Статус: на согласовании.
+Дата: 2026-10-11. Статус: согласовано.
 
 Репозиторий: `Cringe-Driven-Development-Team/claude-plugins`.
 Основа: `origin/main`, коммит `b745231fc95307f63eeaa6fc5fa67ff3c113392c`.
