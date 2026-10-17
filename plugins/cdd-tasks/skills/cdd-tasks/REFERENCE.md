@@ -111,7 +111,8 @@ gh pr create -R Cringe-Driven-Development-Team/frontend --base main \
 
 Первая строка `pr.md` — `Closes #12`. Ментор frontend обязательно проверяет PR.
 Backend также в Cringe-Driven-Development-Team/backend:
-`api-12`, `API-12: …`, `Closes #12`; обязательный review Александра.
+`api-12`, `API-12: …`, `Closes #12`; обязательный review Александра, кроме
+персонального backend-исключения `YarikMix`, описанного ниже.
 
 Проверить, что PR привязан к задаче:
 
@@ -124,7 +125,17 @@ gh pr view <номер> -R <репозиторий> --json closingIssuesReferenc
 При `Part of …` пустой список — норма.
 
 Задача закрывается при мерже в ветку по умолчанию. Frontend и backend требуют
-апрува ментора, в том числе после переноса в командную организацию.
+апрува ментора, в том числе после переноса в командную организацию. По отдельному
+решению владельца `YarikMix` может обычным merge принять backend PR без Approve,
+включая свой. Перед merge проверь authenticated account и действующий персональный
+approval ruleset: PR, актуальная ветка, `lint/test/docker` и разрешение обсуждений
+остаются обязательными. `--admin`, bypass CI/integrity и перенос исключения на
+frontend или других участников не допускаются. Если `gh pr merge` останавливается
+на общем `Review required`, при подтверждённом YarikMix-исключении можно вызвать
+стандартный `PUT repos/Cringe-Driven-Development-Team/backend/pulls/N/merge`:
+`sha` равен проверенному актуальному head, `merge_method=merge`. Перед вызовом снова
+проверь аккаунт, персональный approval ruleset, required checks, актуальность ветки
+и обсуждения. Не меняй rulesets ради обхода ошибки и не передавай admin override.
 Учебные frontend и backend — копии main без Actions; рабочие PR и review остаются в команде.
 
 ## 5. Задача без PR
