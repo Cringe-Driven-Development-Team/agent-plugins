@@ -99,18 +99,19 @@ gh project item-edit --project-id "$PROJECT" --id "$ITEM" \
 
 ## 4. Pull request
 
-Курсовой репозиторий фронта, задача `frontend#12`:
+Командный репозиторий фронта, задача `frontend#12`:
 
 ```bash
 git switch -c web-12 origin/main
 # …коммиты…
 git push -u origin web-12
-gh pr create -R frontend-park-mail-ru/2026_2_Cringe_Driven_Development --base main \
+gh pr create -R Cringe-Driven-Development-Team/frontend --base main \
   --title "WEB-12: Форма входа" --body-file pr.md
 ```
 
-Первая строка `pr.md` — `Closes Cringe-Driven-Development-Team/frontend#12`. Для бэка — `api-12`,
-`API-12: …`, `Closes Cringe-Driven-Development-Team/backend#12`.
+Первая строка `pr.md` — `Closes #12`. Ментор frontend обязательно проверяет PR.
+Backend пока остаётся в go-park-mail-ru/2026_2_Cringe_Driven_Development:
+`api-12`, `API-12: …`, `Closes Cringe-Driven-Development-Team/backend#12`.
 
 Проверить, что PR привязан к задаче:
 
@@ -122,8 +123,9 @@ gh pr view <номер> -R <репозиторий> --json closingIssuesReferenc
 Пустой список при строке `Closes …` — ошибка в ссылке: чаще всего короткое `#N` в курсовом
 репозитории. При `Part of …` пустой список — норма.
 
-Задача закрывается при мерже в ветку по умолчанию. PR курсовых репозиториев требуют апрува; их
-мерж закрывает задачу в организации автоматически.
+Задача закрывается при мерже в ветку по умолчанию. Frontend и backend требуют
+апрува ментора, в том числе после переноса в командную организацию.
+Учебный frontend — копия main без Actions; рабочие PR и review остаются в команде.
 
 ## 5. Задача без PR
 
