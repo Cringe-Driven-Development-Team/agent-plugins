@@ -17,7 +17,7 @@ for s in "CONTRIBUTING.md" "Cringe-Driven-Development-Team/frontend" \
          "Cringe-Driven-Development-Team/backend" \
          "frontend-park-mail-ru/2026_2_Cringe_Driven_Development" \
          "go-park-mail-ru/2026_2_Cringe_Driven_Development" \
-         "Closes Cringe-Driven-Development-Team/frontend#N" "Part of" "sub-issue" \
+         "Closes #N" "Part of" "sub-issue" \
          "web-N" "API-N" "«Цель», «Что сделать» и «Приёмка»" "--admin"; do
   need SKILL.md "$s"
 done
