@@ -19,17 +19,18 @@ gh api repos/Cringe-Driven-Development-Team/.github/contents/CONTRIBUTING.md -H 
 
 ## Карта: где задача, где код
 
-Задачи заводятся только в `Cringe-Driven-Development-Team`. Фронтенд уже перенесён:
-код, issues и PR вместе в team/frontend. Backend пока разрабатывается в go-park,
-задачи — в team/backend. Карта ниже поддерживает это смешанное состояние.
+Задачи заводятся только в `Cringe-Driven-Development-Team`. Обе области перенесены:
+код, issues и PR вместе в team/frontend и team/backend.
 Учебный `frontend-park-mail-ru/2026_2_Cringe_Driven_Development` — копия main,
 Actions там выключены; новых рабочих PR туда не открывать. Проверять текущую
 фазу по CONTRIBUTING, а не по наличию исходников в учебной копии.
+Учебный `go-park-mail-ru/2026_2_Cringe_Driven_Development` также копия main
+без Actions и новых рабочих PR. Ревью остаётся в командных репозиториях.
 
 | Область | Заголовок задачи | Задача — в | Код и PR — в | Ветка | Заголовок PR | Закрывающая строка в PR |
 |---|---|---|---|---|---|---|
 | фронтенд | `Frontend. …`, `BFF. …` | `Cringe-Driven-Development-Team/frontend` | там же | `web-N` | `WEB-N: <название задачи>` | `Closes #N` |
-| бэкенд | `Backend. …` | `Cringe-Driven-Development-Team/backend` | `go-park-mail-ru/2026_2_Cringe_Driven_Development` | `api-N` | `API-N: <название задачи>` | `Closes Cringe-Driven-Development-Team/backend#N` |
+| бэкенд | `Backend. …` | `Cringe-Driven-Development-Team/backend` | там же | `api-N` | `API-N: <название задачи>` | `Closes #N` |
 | инфраструктура | `DevOps. …` | `Cringe-Driven-Development-Team/infra` | там же | по README и последним PR репозитория | так же | `Closes #N` |
 | остальное | префикс — в `CONTRIBUTING.md` | репозиторий организации, где лежит код | там же | по README и последним PR репозитория | так же | `Closes #N` |
 
@@ -64,7 +65,7 @@ Actions там выключены; новых рабочих PR туда не о
 
 | Ситуация | Строка |
 |---|---|
-| Backend PR в go-park закрывает задачу до переноса backend | полная: `Closes Cringe-Driven-Development-Team/backend#N`; короткое `#N` укажет на курсовой репозиторий |
+| Рабочий frontend/backend PR | `Closes #N` в соответствующем командном репозитории |
 | PR и задача в одном репозитории | `Closes #N` |
 | PR в другом репозитории закрывает свою sub-issue | `Closes #N` — номер sub-issue, не родителя |
 | PR в репозитории родителя | закрывает родителя и вливается последним |

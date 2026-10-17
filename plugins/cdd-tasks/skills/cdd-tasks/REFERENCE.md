@@ -110,8 +110,8 @@ gh pr create -R Cringe-Driven-Development-Team/frontend --base main \
 ```
 
 Первая строка `pr.md` — `Closes #12`. Ментор frontend обязательно проверяет PR.
-Backend пока остаётся в go-park-mail-ru/2026_2_Cringe_Driven_Development:
-`api-12`, `API-12: …`, `Closes Cringe-Driven-Development-Team/backend#12`.
+Backend также в Cringe-Driven-Development-Team/backend:
+`api-12`, `API-12: …`, `Closes #12`; обязательный review Александра.
 
 Проверить, что PR привязан к задаче:
 
@@ -120,12 +120,12 @@ gh pr view <номер> -R <репозиторий> --json closingIssuesReferenc
   --jq '[.closingIssuesReferences[] | "\(.repository.name)#\(.number)"]'
 ```
 
-Пустой список при строке `Closes …` — ошибка в ссылке: чаще всего короткое `#N` в курсовом
-репозитории. При `Part of …` пустой список — норма.
+Пустой список при строке `Closes …` — проверить номер задачи и репозиторий PR.
+При `Part of …` пустой список — норма.
 
 Задача закрывается при мерже в ветку по умолчанию. Frontend и backend требуют
 апрува ментора, в том числе после переноса в командную организацию.
-Учебный frontend — копия main без Actions; рабочие PR и review остаются в команде.
+Учебные frontend и backend — копии main без Actions; рабочие PR и review остаются в команде.
 
 ## 5. Задача без PR
 
