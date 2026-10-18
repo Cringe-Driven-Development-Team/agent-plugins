@@ -151,3 +151,92 @@ gh issue close 3 -R Cringe-Driven-Development-Team/figma --comment "Принят
 ```
 
 Задача больше не нужна: `gh issue close <номер> -R <репозиторий> --reason "not planned" --comment "<почему>"`.
+
+## 6. После merge: CI и учебная копия
+
+Проверки выполняются в командном репозитории. В учебном Actions выключены; туда
+копируется история main с теми же SHA и деревьями, без новых PR, ревью и runs.
+Merge закрывает связанную задачу независимо от последующего результата sync.
+
+Примеры — Bash (Linux/WSL). Выбери область и фактический merge SHA из PR:
+
+```bash
+AREA=frontend  # либо backend
+PRIMARY="Cringe-Driven-Development-Team/$AREA"
+case "$AREA" in
+  frontend) COURSE=frontend-park-mail-ru/2026_2_Cringe_Driven_Development ;;
+  backend) COURSE=go-park-mail-ru/2026_2_Cringe_Driven_Development ;;
+  *) echo 'Неизвестная область' >&2; exit 1 ;;
+esac
+MERGE_SHA='полный merge SHA проверяемого PR'
+gh run list -R "$PRIMARY" --workflow ci.yml --branch main --event push \
+  --commit "$MERGE_SHA" --json databaseId,headSha,status,conclusion,url
+CI_RUN_ID='ID push/main CI для этого SHA'
+gh run view "$CI_RUN_ID" -R "$PRIMARY" \
+  --json event,headBranch,headSha,workflowName,status,conclusion,jobs,url
+```
+
+Зелёный Check исходного PR не заменяет push/main CI. Сверь run с ci.yml, push,
+main и проверяемым SHA; отсутствие запуска или незавершённый job — ещё не успех.
+Проверь code jobs: frontend — Check, backend — lint/test/docker; отдельно
+course-sync / sync и upload/deploy, если они запускались. Если упал только sync,
+общий CI может быть красным при успешных code jobs и deploy.
+
+Проверь актуальность копии:
+
+```bash
+PRIMARY_SHA=$(gh api "repos/$PRIMARY/commits/main" --jq .sha) || exit 1
+COURSE_SHA=$(gh api "repos/$COURSE/commits/main" --jq .sha) || exit 1
+test "$PRIMARY_SHA" = "$COURSE_SHA"
+```
+
+Одинаковый commit SHA означает одинаковое дерево. Если main ушёл вперёд во время
+проверки, выбери CI нового SHA и повтори сверку; результат исходного PR укажи отдельно.
+При несовпадении не объявляй копию актуальной: найди соответствующий sync и его причину.
+
+### Повтор sync без deploy
+
+Сначала сверь текущие main: если новый SHA уже синхронизирован, старый run повторять
+не нужно. Иначе прочитай лог упавшего sync; исправление доступа или истории бери из
+[runbook](https://github.com/Cringe-Driven-Development-Team/.github/blob/main/docs/migrations/team-repositories-runbook.md).
+PR остаётся merged, задача — closed; не переоткрывай их ради повторного копирования.
+
+Для повтора того же CI run возьми databaseId именно job course-sync / sync:
+
+```bash
+gh run view "$CI_RUN_ID" -R "$PRIMARY" --json jobs \
+  --jq '.jobs[] | {databaseId,name,status,conclusion}'
+SYNC_JOB_ID='databaseId упавшего course-sync / sync'
+gh run view "$CI_RUN_ID" -R "$PRIMARY" --job "$SYNC_JOB_ID" --log-failed
+gh run rerun "$CI_RUN_ID" -R "$PRIMARY" --job "$SYNC_JOB_ID"
+```
+
+Это повтор конкретного sync job. Общий Re-run all jobs или --failed может затронуть
+другие jobs, включая deploy. Альтернатива — отдельный ручной sync:
+
+```bash
+gh workflow run sync-to-course.yml -R "$PRIMARY" --ref main -f "ci_run_id=$CI_RUN_ID"
+```
+
+Ручной workflow не запускает deploy. Передай ID проверенного push/main ci.yml с
+успешными обязательными code jobs (backend также docker); общий conclusion может
+быть failure из-за sync. Произвольный SHA/ref/target не передаётся: SHA извлекается
+из CI, provenance проверяется заново. Не повторяй старый SHA поверх более нового
+main; при невозможном fast-forward разбери расхождение по runbook, без force push.
+После повтора проверь его sync job и заново сравни текущие main. В отчёт — URL
+проверенного запуска, SHA и результат; отсутствие Telegram-сообщения не доказывает успех.
+
+### Уведомления sync
+
+| Событие | Ожидаемое сообщение |
+|---|---|
+| Ошибка синхронизации | ❌ Course synchronization failed |
+| Успешный повтор того же run после ошибки sync | ✅ Course synchronization recovered |
+| Обычный успех или повтор, у которого предыдущая синхронизация уже успешна | Сообщения нет |
+| Новый отдельный ручной run после ошибки другого run | Успех не даёт recovery-сообщения о другом run |
+
+Уведомление о восстановлении относится к истории попыток одного run. Старые runs
+используют прежний закреплённый SHA автоматики: их Re-run не подключает новую версию
+уведомлений. Ошибка чтения истории или доставки recovery видна в job как warning;
+сам sync может быть успешным. Условия и устройство общей автоматики —
+[README .github](https://github.com/Cringe-Driven-Development-Team/.github/blob/main/README.md).

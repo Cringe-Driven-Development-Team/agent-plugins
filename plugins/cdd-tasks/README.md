@@ -3,7 +3,8 @@
 Скилл для работы с задачами и PR команды из Claude Code: в каком репозитории заводить задачу,
 как её назвать и описать, как разбить на sub-issues работу, которая затрагивает несколько
 репозиториев, как выставить статус и спринт на доске, что писать в описании PR — `Closes` или
-`Part of`.
+`Part of`. После merge — как проверить CI и учебную копию, повторить sync без
+deploy и понять Telegram-уведомления.
 
 Сами правила — в [CONTRIBUTING.md](https://github.com/Cringe-Driven-Development-Team/.github/blob/main/CONTRIBUTING.md)
 организации. Скилл их не заменяет: он читает их перед работой и добавляет то, что нужно агенту, —
@@ -43,4 +44,5 @@
 ```bash
 bash plugins/cdd-tasks/tests/check_docs.sh
 claude plugin eval plugins/cdd-tasks --case multi-repo-task --runs 3
+claude plugin eval plugins/cdd-tasks --case post-merge-sync --runs 3
 ```
