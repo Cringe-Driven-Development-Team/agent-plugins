@@ -184,6 +184,9 @@ inventory `openstack.cloud.openstack` группирует хосты по `open
   `api.<пул>.storage.selcloud.ru/v2/containers/<бакет>/options`; свой домен бакета — только CNAME на
   `access.<пул>.storage.selcloud.ru`. CDN — CDN API v3: свой домен после CNAME на `<id>.selcdn.net`,
   затем Let's Encrypt. REFERENCE §9.
+- Свой домен — на CDN-ресурс с бакетом источником: CNAME и привязку Pulumi делает сам, руками только
+  сертификат. Напрямую на бакет — долго: привязка и сертификат в панели, `up` падает на
+  `domain_cname_invalid`, отвязка в API не описана (REFERENCE §9, «Свой домен: через CDN»).
 
 Детали, команды и `pulumi login` для S3 — REFERENCE §9.
 
