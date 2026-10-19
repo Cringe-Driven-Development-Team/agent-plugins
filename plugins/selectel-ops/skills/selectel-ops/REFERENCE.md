@@ -218,7 +218,8 @@ openstack --os-cloud <имя> project list
 | `INFRA_PROJECT_ID must be set for the resource import` | Pulumi, `import` DNS-ресурса | у провайдера пустой `projectId` | явный провайдер с `projectId` или переменная на время `preview` и `up` (§3) |
 | `this_rrset_is_already_exists` на NS-записи поддомена | DNS v2 | делегирование зоны-поддомена Selectel ставит сам | не создавать NS-запись для своей зоны-поддомена (§3) |
 | `object not found` / `zone not found` на `refresh` | Pulumi, `DomainsZoneV2`/`DomainsRrsetV2`, удалённые вне Pulumi | провайдер отвечает ошибкой, а не «ресурса нет» — `refresh` их не уберёт | `pulumi state delete <urn>` (сначала записи, потом зона; с `protect` — `state unprotect`) |
-| `422 domain_cname_invalid` / `domain_lookup_failed` | API хранилища, свой домен бакета | нет CNAME на `access.<пул>.storage.selcloud.ru` (ALIAS не принимается) или он ещё не разошёлся | CNAME в родительской зоне и повтор с ожиданием (§9) |
+| `422 domain_cname_invalid` / `domain_lookup_failed` | API хранилища, свой домен бакета | нет CNAME на `access.<пул>.storage.selcloud.ru` (ALIAS не принимается) или он ещё не разошёлся | CNAME в родительской зоне и повтор с ожиданием; лучше домен на CDN-ресурс (§9) |
+| `404 endpoint_not_found` / `422 validation_failed` при отвязке домена бакета | API хранилища | не тот вид запроса | `DELETE .../domains` с телом `{"domains": [...]}` (§9) |
 | `450 Invalid Request` на заказе Let's Encrypt | CDN API v3 | у ресурса нет своего домена в `names` | сначала CNAME на `<id>.selcdn.net`, потом домен в `names` (§9) |
 | `CERTIFICATE_VERIFY_FAILED ... self-signed certificate in certificate chain` | Python с python.org на macOS, любой `https` | не выполнен `Install Certificates.command` | выполнить команду или использовать Python со своим доверенным хранилищем сертификатов (например через `certifi`) |
 | смена порта ssh не действует | `sshd_config`, Ubuntu 22.10 и новее | `Port` игнорируется при socket-активации `ssh.socket` | отключить socket-активацию перед сменой порта |
@@ -618,6 +619,28 @@ curl -sS https://api.<POOL>.storage.selcloud.ru/v2/containers/<BUCKET>/pubdomain
 ожиданием, пока не разойдётся (`domain_lookup_failed`/`domain_cname_invalid`). TLS-сертификат для
 своего домена бакета — в панели (бакет → Домены), в API его выпуска нет. В Pulumi всё это — не
 провайдер, а dynamic-ресурс или панель (скилл `pulumi-typescript`).
+
+Отвязка домена от бакета в документации не описана. Работает `DELETE .../containers/<BUCKET>/domains`
+с телом `{"domains": ["<домен>"]}` → `204`, проверка — `GET .../domains` (`{"domains": []}`).
+`DELETE .../domains/<домен>` отвечает `404 endpoint_not_found`, тело `{"domain_name": ...}` —
+`422 validation_failed` («field is unknown»).
+
+### Свой домен: через CDN, а не напрямую на бакет
+
+Свой домен (`static.example.ru`) вешать на CDN-ресурс, источником которого служит публичный бакет.
+Так Pulumi делает всё сам: CNAME на `<id>.selcdn.net` в родительской зоне и `PATCH names` со сверкой
+через `GET` («CDN» ниже). Руками остаётся только сертификат в панели CDN, один раз.
+
+Свой домен напрямую на бакет автоматизируется плохо и занимает долго:
+
+- API привязки принимает только CNAME на `access.<POOL>.storage.selcloud.ru` в родительской зоне.
+  Зона-поддомен с ALIAS (так делают, когда нужен сертификат S3 в панели) даёт
+  `422 domain_cname_invalid`: привязку приходится делать в панели, `up` падает на ней.
+- Сертификат — только в панели (S3 → SSL-сертификаты); пока его нет, домен отвечает по HTTPS
+  сертификатом `*.<POOL>.storage.selcloud.ru`, и всё, что ходит на него по HTTPS (прокси перед
+  клиентом, бэк), ломается — выкатку ждать до выпуска.
+- Итог — несколько заходов `up` вперемешку с ручными шагами в панели и отвязка, которая в API не
+  описана. Если домен на бакете всё же нужен — только CNAME в родительской зоне, не зона-поддомен.
 
 ### CDN
 
