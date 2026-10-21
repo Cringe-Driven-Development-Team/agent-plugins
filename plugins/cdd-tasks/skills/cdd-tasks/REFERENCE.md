@@ -56,6 +56,35 @@ gh api -X POST repos/Cringe-Driven-Development-Team/frontend/issues/6/sub_issues
 gh api repos/Cringe-Driven-Development-Team/frontend/issues/6/sub_issues --jq '.[] | "\(.repository_url | split("/") | last)#\(.number) \(.state)"'
 ```
 
+Для реальных зависимостей задач используй GitHub `Blocked by`. Номер задачи — не её
+числовой `id`: сначала получи `id` блокирующей задачи. Например, для `infra#64`,
+которую блокирует `infra#54`:
+
+```bash
+ISSUE_REPO=Cringe-Driven-Development-Team/infra
+ISSUE_NUMBER=64
+BLOCKER_REPO=Cringe-Driven-Development-Team/infra
+BLOCKER_NUMBER=54
+BLOCKER_ID=$(gh api "repos/$BLOCKER_REPO/issues/$BLOCKER_NUMBER" --jq .id)
+gh api "repos/$ISSUE_REPO/issues/$ISSUE_NUMBER/dependencies/blocked_by" \
+  --jq '[.[] | {number, html_url}]' # проверь существующие связи перед добавлением
+gh api -X POST "repos/$ISSUE_REPO/issues/$ISSUE_NUMBER/dependencies/blocked_by" \
+  -F issue_id="$BLOCKER_ID"
+gh api "repos/$ISSUE_REPO/issues/$ISSUE_NUMBER/dependencies/blocked_by" \
+  --jq '[.[] | {number, html_url}]' # проверь результат
+```
+
+Добавляй только отсутствующие блокеры. Если согласованная зависимость снята:
+
+```bash
+gh api -X DELETE "repos/$ISSUE_REPO/issues/$ISSUE_NUMBER/dependencies/blocked_by/$BLOCKER_ID"
+gh api "repos/$ISSUE_REPO/issues/$ISSUE_NUMBER/dependencies/blocked_by" \
+  --jq '[.[] | {number, html_url}]'
+```
+
+Ссылки на PR и просто связанные задачи остаются в тексте;
+`Blocked by` не заменяет `sub-issue`.
+
 ## 3. Доска
 
 Новая задача попадает на доску сама, если в репозитории подключён workflow «Автоматизация».
