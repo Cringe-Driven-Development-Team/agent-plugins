@@ -398,11 +398,48 @@ groups:
    `~/.config/openstack/clouds.yaml`, `/etc/openstack/clouds.yaml`); берутся `auth.username`,
    `auth.password`, `auth.user_domain_name` (номер аккаунта), `auth.project_id`, `auth.auth_url`,
    `region_name`.
-2. Переменные окружения `SELECTEL_ACCOUNT`, `SELECTEL_USERNAME`, `SELECTEL_PASSWORD`;
-   необязательно `SELECTEL_PROJECT_ID`, `SELECTEL_REGION` (по умолчанию `ru-9`),
-   `SELECTEL_AUTH_URL`.
+2. Переменные окружения: `SELECTEL_ACCOUNT` или `SELECTEL_DOMAIN_NAME` (номер аккаунта),
+   `SELECTEL_USERNAME`, `SELECTEL_PASSWORD`; при отсутствии — соответствующие `OS_DOMAIN_NAME` /
+   `OS_USER_DOMAIN_NAME` / `OS_PROJECT_DOMAIN_NAME`, `OS_USERNAME`, `OS_PASSWORD`. Для проекта,
+   региона: `SELECTEL_PROJECT_ID` / `OS_PROJECT_ID`, `SELECTEL_REGION` / `OS_REGION_NAME`.
+   При наличии любого `SELECTEL_*` поля логина (аккаунт, имя или пароль) вся тройка берётся только
+   из `SELECTEL_*`: данные другого `OS_*` профиля не подмешиваются. URL — `SELECTEL_AUTH_URL` или адрес Selectel
+   по умолчанию; регион без переменной — `ru-9`. Скрипт не читает файл секретов сам: его загружают
+   в процесс перед запуском.
 3. Если пароля нет ни там, ни там, и есть TTY — интерактивный `getpass`. Пароль никогда не
    принимается аргументом командной строки и никогда не печатается.
+
+### Обнаружение доступа при одном вызове скилла
+
+Сначала проверь наличие подходящих переменных и конфигов по **именам**, без вывода значений.
+Не делай вывод «кредов нет» только по окружению инструмента: Codex может запускать каждый tool call
+в новом shell, не наследующем `source` из терминала пользователя. Используй существующий доверенный
+загрузчик репозитория, а не копируй пароль в команду, чат, `clouds.yaml` или конфиг Codex.
+
+Для репозитория CDD `infra` уже есть `pulumi/bootstrap/env.sh`: он читает личный
+`~/.config/selectel.env` с правами `600`. Вызови загрузчик и `check` в **одном shell**. Для работы
+с `prod` выбери id и регион именно этого стека: `env.sh` по умолчанию задаёт проект стейта
+`infra-shared` и регион `ru-7`, а они не обязаны совпадать с ресурсами задачи.
+
+```bash
+cd <путь-к-infra>/pulumi
+set -e
+source bootstrap/env.sh
+target_project_id=$(pulumi stack output projectId --stack prod)
+target_region=$(pulumi config get infra:pool --stack prod)
+test -n "$target_project_id" && test -n "$target_region"
+python3 <каталог-selectel-ops>/scripts/selectel.py check \
+  --project "$target_project_id" --region "$target_region"
+OS_PROJECT_ID="$target_project_id" OS_REGION_NAME="$target_region" openstack server list
+```
+
+Замени `prod` и `infra:pool` на стек/регион нужной задачи; для DNS-зоны проверь, в каком проекте
+она находится. Если `~/.config/selectel.env` отсутствует, в этом репозитории есть
+`pulumi/bootstrap/init-env.sh`: прочитай его инструкцию в `pulumi/bootstrap/README.md` и предложи
+пользователю ввести пароль и passphrase **в интерактивном терминале**, не в чат. Первый сервисный
+пользователь аккаунта и его роли создаются в панели Selectel; после этого агент может запустить
+`init-env.sh` и повторить `check`. Если рабочий файл уже есть, не выпускай новый ключ и не меняй
+его. В других репозиториях сначала ищи их собственный доверенный способ загрузки или `clouds.yaml`.
 
 Подкоманды:
 

@@ -38,6 +38,80 @@ class CredentialsTest(unittest.TestCase):
         self.assertEqual(creds["region"], "ru-3")
         self.assertEqual(creds["auth_url"], selectel.DEFAULT_AUTH_URL)
 
+    def test_load_env_reads_existing_infra_bootstrap_variables(self):
+        bootstrap_env = {
+            "SELECTEL_DOMAIN_NAME": "12345",
+            "SELECTEL_USERNAME": "svc",
+            "SELECTEL_PASSWORD": "pw",
+            "OS_PROJECT_ID": "state-project",
+            "OS_REGION_NAME": "ru-7",
+            "OS_AUTH_URL": "https://cloud.api.selcloud.ru/identity/v3/",
+        }
+        with mock.patch.dict(os.environ, bootstrap_env, clear=True):
+            creds = selectel.load_env()
+        self.assertEqual(creds["account"], "12345")
+        self.assertEqual(creds["username"], "svc")
+        self.assertEqual(creds["password"], "pw")
+        self.assertEqual(creds["project_id"], "state-project")
+        self.assertEqual(creds["region"], "ru-7")
+        self.assertEqual(creds["auth_url"], selectel.DEFAULT_AUTH_URL)
+
+    def test_explicit_selectel_variables_override_openstack_aliases(self):
+        env = {
+            **ENV,
+            "SELECTEL_DOMAIN_NAME": "other-account",
+            "OS_PROJECT_ID": "other-project",
+            "OS_REGION_NAME": "ru-7",
+            "OS_USERNAME": "other-user",
+            "OS_PASSWORD": "other-password",
+        }
+        with mock.patch.dict(os.environ, env, clear=True):
+            creds = selectel.load_env()
+        self.assertEqual(creds["account"], "12345")
+        self.assertEqual(creds["project_id"], "abc")
+        self.assertEqual(creds["region"], "ru-3")
+        self.assertEqual(creds["username"], "svc")
+        self.assertEqual(creds["password"], "pw")
+
+    def test_load_env_accepts_openstack_only_environment(self):
+        openstack_env = {
+            "OS_USER_DOMAIN_NAME": "12345",
+            "OS_USERNAME": "svc",
+            "OS_PASSWORD": "pw",
+            "OS_PROJECT_ID": "project-id",
+            "OS_REGION_NAME": "ru-9",
+        }
+        with mock.patch.dict(os.environ, openstack_env, clear=True):
+            creds = selectel.load_env()
+        self.assertEqual(creds["account"], "12345")
+        self.assertEqual(creds["username"], "svc")
+        self.assertEqual(creds["password"], "pw")
+        self.assertEqual(creds["project_id"], "project-id")
+        self.assertEqual(creds["region"], "ru-9")
+
+    def test_selectel_login_does_not_use_unrelated_openstack_secret_or_endpoint(self):
+        mixed_env = {
+            "SELECTEL_ACCOUNT": "12345",
+            "SELECTEL_USERNAME": "svc",
+            "OS_PASSWORD": "other-cloud-password",
+            "OS_AUTH_URL": "https://identity.other-cloud.example/v3",
+        }
+        with mock.patch.dict(os.environ, mixed_env, clear=True):
+            creds = selectel.load_env()
+        self.assertEqual(creds["password"], "")
+        self.assertEqual(creds["auth_url"], selectel.DEFAULT_AUTH_URL)
+
+    def test_selectel_account_does_not_use_unrelated_openstack_login(self):
+        mixed_env = {
+            "SELECTEL_ACCOUNT": "12345",
+            "OS_USERNAME": "other-cloud-user",
+            "OS_PASSWORD": "other-cloud-password",
+        }
+        with mock.patch.dict(os.environ, mixed_env, clear=True):
+            creds = selectel.load_env()
+        self.assertEqual(creds["username"], "")
+        self.assertEqual(creds["password"], "")
+
     def test_load_credentials_missing_account_raises_usage_error(self):
         with mock.patch.dict(os.environ, {"SELECTEL_USERNAME": "svc", "SELECTEL_PASSWORD": "pw"}, clear=True):
             with self.assertRaises(selectel.UsageError) as ctx:
