@@ -26,6 +26,10 @@
 
 ## Проверка доступа
 
+При вызове скилл сначала ищет уже настроенный доступ. В CDD `infra` он загружает
+`pulumi/bootstrap/env.sh` (тот читает `~/.config/selectel.env`) и проверяет проект и регион
+нужного стека. Пароль в чат и конфиг Codex переносить не требуется.
+
 ```bash
 python3 ~/.claude/plugins/marketplaces/cdd/plugins/selectel-ops/skills/selectel-ops/scripts/selectel.py --cloud <имя-облака-из-clouds.yaml> check
 ```

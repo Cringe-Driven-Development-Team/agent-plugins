@@ -2,8 +2,8 @@
 """Токен, проекты, каталог и диагностика доступа к облаку Selectel. Только чтение.
 
 Креды: --cloud NAME из clouds.yaml (нужен PyYAML) или переменные окружения
-SELECTEL_ACCOUNT, SELECTEL_USERNAME, SELECTEL_PASSWORD (необязательно
-SELECTEL_PROJECT_ID, SELECTEL_REGION, SELECTEL_AUTH_URL).
+SELECTEL_*/OS_*. Файл учётных данных загружается снаружи, в том же процессе,
+например через доверенный env.sh проекта.
 Пароль в аргументы не передаётся и никогда не печатается.
 """
 import argparse
@@ -115,13 +115,18 @@ def load_clouds_yaml(cloud, path=None):
 
 def load_env():
     env = os.environ.get
+    selectel_login = any(env(key) is not None for key in (
+        "SELECTEL_ACCOUNT", "SELECTEL_DOMAIN_NAME", "SELECTEL_USERNAME", "SELECTEL_PASSWORD"
+    ))
     return {
-        "auth_url": env("SELECTEL_AUTH_URL", DEFAULT_AUTH_URL).rstrip("/"),
-        "account": env("SELECTEL_ACCOUNT", ""),
-        "username": env("SELECTEL_USERNAME", ""),
-        "password": env("SELECTEL_PASSWORD", ""),
-        "project_id": env("SELECTEL_PROJECT_ID") or None,
-        "region": env("SELECTEL_REGION", DEFAULT_REGION),
+        "auth_url": (env("SELECTEL_AUTH_URL") or DEFAULT_AUTH_URL).rstrip("/"),
+        "account": ((env("SELECTEL_ACCOUNT") or env("SELECTEL_DOMAIN_NAME")) if selectel_login
+                    else (env("OS_DOMAIN_NAME") or env("OS_USER_DOMAIN_NAME")
+                          or env("OS_PROJECT_DOMAIN_NAME"))) or "",
+        "username": (env("SELECTEL_USERNAME") if selectel_login else env("OS_USERNAME")) or "",
+        "password": (env("SELECTEL_PASSWORD") if selectel_login else env("OS_PASSWORD")) or "",
+        "project_id": env("SELECTEL_PROJECT_ID") or env("OS_PROJECT_ID") or None,
+        "region": env("SELECTEL_REGION") or env("OS_REGION_NAME") or DEFAULT_REGION,
     }
 
 
@@ -132,7 +137,7 @@ def load_credentials(cloud=None, clouds_file=None, ask_password=None):
     if missing:
         raise UsageError(
             "не заданы: " + ", ".join(missing)
-            + " (clouds.yaml через --cloud или SELECTEL_ACCOUNT/SELECTEL_USERNAME)"
+            + " (clouds.yaml через --cloud или SELECTEL_*/OS_* из доверенного окружения)"
         )
     if not creds["password"]:
         if ask_password is None and sys.stdin.isatty():
