@@ -1,6 +1,6 @@
 # CDD Next Sprint Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Научить cdd-tasks распознавать Next Sprint, назначать следующую итерацию и проверять результат без изменения статуса.
 
@@ -35,11 +35,11 @@
 
 **Interfaces:** Существующие поле Sprint, ProjectV2Item.fieldValueByName и gh project item-edit; новых интерфейсов нет.
 
-- [ ] Составить сценарий разбора без сети и записей: назначение следующего спринта со статусом In review, граница дат, несортированные итерации, перерыв, отсутствие будущей итерации и несовпадение iterationId после записи. Включить вопрос о назначении представления Next Sprint и действующих фильтрах.
-- [ ] Прогнать сценарий независимым агентом со старой инструкцией. Сохранить наблюдения baseline в журнале проверки; не придумывать провал, если агент справился. При отсутствии провала не добавлять неподтверждённые правила сверх согласованной справочной правки.
-- [ ] Дополнить SKILL.md кратким правилом и ссылкой на REFERENCE §3; в справочнике описать Next Sprint, актуальные фильтры Backlog/Sprint, интервалы дат, выбор следующей итерации и повторное чтение Sprint/Status через API. Сохранить существующую команду назначения и ограничение на изменение полей только по просьбе.
-- [ ] Повторить тот же сценарий независимым агентом с изменённой инструкцией. Проверить все пять условий Review Focus и соответствие исходным четырём пунктам пользователя.
-- [ ] Выполнить `bash plugins/cdd-tasks/tests/check_docs.sh`, `bash tests/manifest_validation_test.sh`, `bash tests/manifest_test.sh`, `python3 /home/oleg/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/cdd-tasks/skills/cdd-tasks` и `git diff --check`. Ожидается exit 0; не добавлять проверки точных формулировок текста.
-- [ ] Проверить итоговый diff, сохранить журнал baseline/после правки в `docs/superpowers/verification/2026-11-01-cdd-next-sprint.md` и закоммитить завершённую задачу.
+- [x] Составить сценарий разбора без сети и записей: назначение следующего спринта со статусом In review, граница дат, несортированные итерации, перерыв, отсутствие будущей итерации и несовпадение iterationId после записи. Включить вопрос о назначении представления Next Sprint и действующих фильтрах.
+- [x] Прогнать сценарий независимым агентом со старой инструкцией. Сохранить наблюдения baseline в журнале проверки; не придумывать провал, если агент справился. При отсутствии провала не добавлять неподтверждённые правила сверх согласованной справочной правки.
+- [x] Дополнить SKILL.md кратким правилом и ссылкой на REFERENCE §3; в справочнике описать Next Sprint, актуальные фильтры Backlog/Sprint, интервалы дат, выбор следующей итерации и повторное чтение Sprint/Status через API. Сохранить существующую команду назначения и ограничение на изменение полей только по просьбе.
+- [x] Повторить тот же сценарий независимым агентом с изменённой инструкцией. Проверить все пять условий Review Focus и соответствие исходным четырём пунктам пользователя.
+- [x] Выполнить `bash plugins/cdd-tasks/tests/check_docs.sh`, `bash tests/manifest_validation_test.sh`, `bash tests/manifest_test.sh`, `python3 /home/oleg/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/cdd-tasks/skills/cdd-tasks` и `git diff --check`. Ожидается exit 0; не добавлять проверки точных формулировок текста.
+- [x] Проверить итоговый diff, сохранить журнал baseline/после правки в `docs/superpowers/verification/2026-11-01-cdd-next-sprint.md` и закоммитить завершённую задачу.
 
-Способ выполнения пользователь пока не выбрал. До выбора инструкция не меняется.
+Способ выполнения: пользователь выбрал `superpowers:executing-plans`.

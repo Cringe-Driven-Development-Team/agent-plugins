@@ -88,6 +88,22 @@ gh api "repos/$ISSUE_REPO/issues/$ISSUE_NUMBER/dependencies/blocked_by" \
 
 ## 3. Доска
 
+Backlog, Sprint и Next Sprint — представления одного проекта Scrumban №1:
+
+| Представление | Фильтр |
+|---|---|
+| Backlog | `-status:Done -sprint:@current -sprint:@next` |
+| Sprint | `sprint:@current` |
+| Next Sprint (`next-sprint`) | `sprint:@next` |
+
+`@next` относится к следующей итерации поля Sprint и меняется вместе с текущей.
+Актуальные названия и фильтры можно проверить:
+
+```bash
+gh api graphql -f query='query{organization(login:"Cringe-Driven-Development-Team"){projectV2(number:1){views(first:100){nodes{name number layout filter}}}}}' \
+  --jq '.data.organization.projectV2.views.nodes'
+```
+
 Новая задача попадает на доску сама, если в репозитории подключён workflow «Автоматизация».
 Не попала — добавить:
 
@@ -120,12 +136,44 @@ gh project item-edit --project-id "$PROJECT" --id "$ITEM" \
 ```bash
 gh api graphql -f query='query{organization(login:"Cringe-Driven-Development-Team"){projectV2(number:1){field(name:"Sprint"){... on ProjectV2IterationField{id configuration{iterations{id title startDate duration}}}}}}}' \
   --jq '.data.organization.projectV2.field | {id, iterations: .configuration.iterations}'
-
-gh project item-edit --project-id "$PROJECT" --id "$ITEM" \
-  --field-id <id поля Sprint> --iteration-id <id итерации>
 ```
 
-В списке только текущая и будущие итерации; текущая — та, у которой `startDate` не позже сегодня.
+Текущая итерация содержит сегодняшнюю дату: `startDate <= today < startDate + duration дней`.
+Дата окончания не включается. Следующая — итерация с ближайшей датой начала после
+окончания текущей (включая саму дату окончания); порядок элементов `iterations` не учитывай.
+Если текущей итерации нет (например, перерыв) или следующая не задана, сообщи об этом
+и уточни целевой спринт до изменения карточки. Самостоятельно итерации не создавай.
+
+Просьба «поставь на следующий спринт» меняет только поле Sprint: команду изменения
+Status выше для неё не выполняй. До назначения прочитай значения карточки и сохрани
+исходный `status.optionId` (включая отсутствие статуса):
+
+```bash
+gh api graphql -F item="$ITEM" -f query='query($item: ID!) {
+  node(id: $item) {
+    ... on ProjectV2Item {
+      sprint: fieldValueByName(name: "Sprint") {
+        ... on ProjectV2ItemFieldIterationValue { iterationId title }
+      }
+      status: fieldValueByName(name: "Status") {
+        ... on ProjectV2ItemFieldSingleSelectValue { optionId name }
+      }
+    }
+  }
+}' --jq '.data.node'
+```
+
+Назначь найденный id следующей итерации:
+
+```bash
+gh project item-edit --project-id "$PROJECT" --id "$ITEM" \
+  --field-id <id поля Sprint> --iteration-id <id следующей итерации>
+```
+
+После назначения повтори запрос чтения карточки: `sprint.iterationId` должен совпасть
+с выбранным id, а `status.optionId` — с исходным, если пользователь не просил изменить статус.
+Успешный ответ записи этого не доказывает. При расхождении сообщи фактические значения;
+не объявляй назначение завершённым и не перезаписывай статус вслепую.
 
 ## 4. Pull request
 
