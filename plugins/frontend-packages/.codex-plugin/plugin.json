@@ -1,0 +1,8 @@
+{
+  "name": "frontend-packages",
+  "description": "npm-публикация библиотек frontend-packages: bootstrap, Trusted Publisher, проверка OIDC и восстановление частичных выпусков. Собственный плагин организации.",
+  "author": {
+    "name": "Cringe-Driven-Development-Team"
+  },
+  "skills": "./skills/"
+}
