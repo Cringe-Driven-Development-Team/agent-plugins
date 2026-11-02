@@ -26,6 +26,11 @@
       "name": "cdd-tasks",
       "source": "./plugins/cdd-tasks",
       "description": "Задачи и PR команды: где заводить задачу, описание, sub-issues, доска, строка Closes или Part of"
+    },
+    {
+      "name": "frontend-packages",
+      "source": "./plugins/frontend-packages",
+      "description": "npm-публикация библиотек frontend-packages: bootstrap, Trusted Publisher, проверка OIDC и восстановление частичных выпусков"
     }
   ]
 }

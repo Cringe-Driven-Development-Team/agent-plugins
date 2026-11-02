@@ -24,7 +24,8 @@
     "pulumi@cdd": true,
     "ansible@cdd": true,
     "selectel-ops@cdd": true,
-    "cdd-tasks@cdd": true
+    "cdd-tasks@cdd": true,
+    "frontend-packages@cdd": true
   }
 }
 ```
@@ -42,8 +43,8 @@ codex plugin marketplace list
 codex plugin list
 ```
 
-Доступны четыре селектора: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
-`cdd-tasks@cdd`. Установите нужные плагины, например:
+Доступны пять селекторов: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
+`cdd-tasks@cdd`, `frontend-packages@cdd`. Установите нужные плагины, например:
 
 ```bash
 codex plugin add pulumi@cdd
@@ -58,11 +59,11 @@ enabled = true
 ```
 
 Для остальных выбранных плагинов добавьте такие же секции с их селекторами.
-В доверенном проекте Codex обнаруживает навыки из установленного
-`plugins/cache/cdd/`: Pulumi — 6, Ansible — 2, Selectel — 1, CDD Tasks — 1,
-всего 10. При проверке через app-server используйте свежий `skills/list`
+В каталоге: Pulumi — 6 навыков, Ansible — 2, Selectel — 1, CDD Tasks — 1,
+Frontend Packages — 1, всего 11. Codex читает навыки из установленного
+`plugins/cache/cdd/`. При проверке обнаружения через app-server используйте свежий `skills/list`
 с `cwds` проекта и `forceReload: true`; считайте только навыки CDD по
-`pluginId` и пути кэша. Подробности клиентской проверки и обновления —
+`pluginId` и пути кэша. Подробности прежней клиентской проверки четырёх плагинов и обновления —
 в [отчёте приёмки](docs/superpowers/verification/2026-10-11-codex-marketplace.md).
 
 После изменения Git-маркетплейса обновите его и откройте новую сессию Codex:
@@ -90,6 +91,10 @@ codex plugin marketplace upgrade cdd
 | `ansible` | `ansible-org` | собственный — подводные камни `ansible/` организации | MIT |
 | `selectel-ops` | `selectel-ops` | собственный плагин организации (перенесён из YarikMix/claude-plugins) | MIT |
 | `cdd-tasks` | `cdd-tasks` | собственный — задачи и PR по `CONTRIBUTING.md` организации | MIT |
+| `frontend-packages` | `npm-publishing` | собственный — bootstrap npm-пакетов, Trusted Publisher и проверка автопубликации | MIT |
+
+Для подключения библиотеки к npm: «подключи @cdd-team/<пакет> к автопубликации».
+Границы поручения, требования и проверки — в [README плагина](plugins/frontend-packages/README.md).
 
 Закреплённые коммиты — в `upstream.json`. Почему взяты именно эти скиллы и что сознательно не
 взято — `docs/design.md`.
@@ -136,6 +141,13 @@ bash tests/manifest_test.sh
 
 Вариант «без плагина» запускается в каталоге этого репо и может найти текст скиллов поиском по
 файлам — Δ скорее занижена, чем завышена.
+
+Для `frontend-packages` доступны `bootstrap`, `trust-recovery`, `partial-release`,
+`diagnostic-only`; например:
+`claude plugin eval plugins/frontend-packages --case trust-recovery --runs 3 --max-cost-usd 4`.
+Отдельная проверка свежими агентами на смоделированных артефактах описана в
+[отчёте npm-publishing](docs/superpowers/verification/2026-11-03-frontend-packages-npm-publishing.md);
+она не подменяет клиентскую приёмку установленного плагина или живую npm-публикацию.
 
 ## Добавить скилл
 
