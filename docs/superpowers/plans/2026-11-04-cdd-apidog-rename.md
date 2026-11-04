@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-04-cdd-apidog-rename-design.md`.
 
+**Execution update:** PR #26 merged externally during execution. Publish the rename in a follow-up PR on a new branch based on `origin/main` (`48cea4c`); this supersedes the original branch/publication instructions below.
+
 ## Global Constraints
 
 - Новые имена: `cdd-apidog`, `cdd-apidog@cdd`, `cdd-apidog:cdd-apidog`.
@@ -38,14 +40,14 @@
 
 **Interfaces:** Consumes существующую поставку `apidog-cdd`; produces устанавливаемый `cdd-apidog@cdd` и скилл `cdd-apidog:cdd-apidog` с прежними инструкциями.
 
-- [ ] Перенести каталоги и заменить старые имена в активных файлах. В тестах обновить также имена функций `test_missing_apidog_cdd_*` и их вызовы. `EXPECTED` остаётся отсортированным: ansible, cdd-apidog, cdd-tasks, frontend-packages, pulumi, selectel-ops.
-- [ ] Обновить README: селектор, таблицу, ссылки и правило `cdd-<область>` для командного контекста. В прежних документах добавить примечания о новом имени, сохранив факты выполненных команд и коммитов.
-- [ ] Выполнить `rg -n --hidden 'apidog-cdd|apidog_cdd' plugins/cdd-apidog README.md tests .claude-plugin .agents`. Ожидание: совпадений нет (exit 1). Проверить ссылку и наличие `plugins/cdd-apidog/skills/cdd-apidog/references/review.md`.
-- [ ] Запустить `bash tests/manifest_test.sh` и `bash tests/manifest_validation_test.sh`. Ожидание: 6 плагинов / 12 скиллов, все существующие сценарии проходят.
-- [ ] Запустить `python3 /home/oleg/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/cdd-apidog/skills/cdd-apidog`, `claude plugin validate plugins/cdd-apidog`, `git diff --check`. Ожидание: exit 0; известное предупреждение об отсутствии version допустимо по правилам репозитория.
-- [ ] Просмотреть diff с обнаружением переименований; убедиться, что инструкции изменились только в именах. Записать результаты в новый verification-файл, отметить шаги плана и закоммитить переименование.
+- [x] Перенести каталоги и заменить старые имена в активных файлах. В тестах обновить также имена функций `test_missing_apidog_cdd_*` и их вызовы. `EXPECTED` остаётся отсортированным: ansible, cdd-apidog, cdd-tasks, frontend-packages, pulumi, selectel-ops.
+- [x] Обновить README: селектор, таблицу, ссылки и правило `cdd-<область>` для командного контекста. В прежних документах добавить примечания о новом имени, сохранив факты выполненных команд и коммитов.
+- [x] Выполнить `rg -n --hidden 'apidog-cdd|apidog_cdd' plugins/cdd-apidog README.md tests .claude-plugin .agents`. Ожидание: совпадений нет (exit 1). Проверить ссылку и наличие `plugins/cdd-apidog/skills/cdd-apidog/references/review.md`.
+- [x] Запустить `bash tests/manifest_test.sh` и `bash tests/manifest_validation_test.sh`. Ожидание: 6 плагинов / 12 скиллов, все существующие сценарии проходят.
+- [x] Запустить `python3 /home/oleg/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/cdd-apidog/skills/cdd-apidog`, `claude plugin validate plugins/cdd-apidog`, `git diff --check`. Ожидание: exit 0; известное предупреждение об отсутствии version допустимо по правилам репозитория.
+- [x] Просмотреть diff с обнаружением переименований; убедиться, что инструкции изменились только в именах. Записать результаты в новый verification-файл, отметить шаги плана и закоммитить переименование.
 - [ ] Пройти ревью по выбранному способу исполнения; исправить замечания и повторить только затронутые проверки.
-- [ ] Отправить ветку в origin. Обновить title/body PR #26 на новое имя, сохранив описание всего скилла; для body использовать временный файл и `--body-file`. Проверить PR head, заголовок и отсутствие активных ссылок на старое имя. Не выполнять merge/install.
+- [ ] Отправить новую ветку в origin и создать follow-up PR к уже слитому #26. Описать переименование, проверки и неизменность инструкций; для body использовать временный файл и `--body-file`. Проверить PR head, заголовок и пути. Не выполнять merge/install.
 
 Новые поведенческие тесты не нужны: проверяется переименование существующими проверками упаковки и валидаторами.
 

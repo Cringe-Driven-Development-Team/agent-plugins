@@ -26,7 +26,7 @@
     "selectel-ops@cdd": true,
     "cdd-tasks@cdd": true,
     "frontend-packages@cdd": true,
-    "apidog-cdd@cdd": true
+    "cdd-apidog@cdd": true
   }
 }
 ```
@@ -45,7 +45,7 @@ codex plugin list
 ```
 
 Доступны шесть селекторов: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
-`cdd-tasks@cdd`, `frontend-packages@cdd`, `apidog-cdd@cdd`. Установите нужные плагины, например:
+`cdd-tasks@cdd`, `frontend-packages@cdd`, `cdd-apidog@cdd`. Установите нужные плагины, например:
 
 ```bash
 codex plugin add pulumi@cdd
@@ -93,7 +93,10 @@ codex plugin marketplace upgrade cdd
 | `selectel-ops` | `selectel-ops` | собственный плагин организации (перенесён из YarikMix/claude-plugins) | MIT |
 | `cdd-tasks` | `cdd-tasks` | собственный — задачи и PR по `CONTRIBUTING.md` организации | MIT |
 | `frontend-packages` | `npm-publishing` | собственный — bootstrap npm-пакетов, Trusted Publisher и проверка автопубликации | MIT |
-| `apidog-cdd` | `apidog-cdd` | собственный — контекст Apidog Cellestial, права и ревью MR; поверх официальных скиллов | MIT |
+| `cdd-apidog` | `cdd-apidog` | собственный — контекст Apidog Cellestial, права и ревью MR; поверх официальных скиллов | MIT |
+
+Для новых скиллов с контекстом команды используем имя `cdd-<область>`:
+например, `cdd-tasks` и `cdd-apidog`.
 
 Для подключения библиотеки к npm: «подключи @cdd-team/<пакет> к автопубликации».
 Границы поручения, требования и проверки — в [README плагина](plugins/frontend-packages/README.md).
@@ -103,7 +106,7 @@ codex plugin marketplace upgrade cdd
 
 ## Apidog CDD
 
-`apidog-cdd@cdd` добавляет ссылки и правила проекта Cellestial; общий CLI,
+`cdd-apidog@cdd` добавляет ссылки и правила проекта Cellestial; общий CLI,
 ветки и тестирование описаны официальными скиллами Apidog. Они устанавливаются
 отдельно, в этот marketplace не копируются.
 

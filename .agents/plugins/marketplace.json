@@ -65,10 +65,10 @@
       "category": "Productivity"
     },
     {
-      "name": "apidog-cdd",
+      "name": "cdd-apidog",
       "source": {
         "source": "local",
-        "path": "./plugins/apidog-cdd"
+        "path": "./plugins/cdd-apidog"
       },
       "policy": {
         "installation": "AVAILABLE",

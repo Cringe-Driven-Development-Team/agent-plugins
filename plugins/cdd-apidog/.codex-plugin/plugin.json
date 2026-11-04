@@ -1,5 +1,5 @@
 {
-  "name": "apidog-cdd",
+  "name": "cdd-apidog",
   "description": "Apidog команды CDD: контекст проекта Cellestial, контракты, права доступа и ревью Merge Request.",
   "author": {
     "name": "Cringe-Driven-Development-Team"
