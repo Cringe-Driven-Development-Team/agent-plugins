@@ -41,15 +41,15 @@
 
 **Interfaces:** Consumes официальные скиллы из host catalog, текущий CLI help и ссылки утверждённой спеки. Produces устанавливаемый `apidog-cdd@cdd` / `apidog-cdd:apidog-cdd`; путь к справочнику ревью добавляется в Task 2.
 
-- [ ] Прочитать spec, AGENTS.md и актуальные main `backend/docs/apidog.md`, `frontend/docs/api-contract.md`, `.github/CONTRIBUTING.md`; сверить project/team/branch через существующую авторизацию, выводя только нужные поля. Зафиксировать источники и дату в verification.
-- [ ] Запустить базовые `bash tests/manifest_validation_test.sh` и `bash tests/manifest_test.sh`; сохранить результаты до изменений.
-- [ ] Обновить контракт инвентаря в manifest_test: добавить apidog-cdd в EXPECTED и цикл. В независимые fixture-списки manifest_validation добавить плагин; ожидаемые итоги: 6 плагинов/12 скиллов, с дополнительным динамическим скиллом — 13. Добавить случаи отсутствия регистрации apidog-cdd и его Codex manifest, ожидающие ненулевой exit и диагностику проблемного пути/набора. Запустить проверки: реальный marketplace должен не пройти до регистрации нового плагина.
-- [ ] Добавить оба манифеста по примеру frontend-packages (name `apidog-cdd`, author `Cringe-Driven-Development-Team`, Codex skills `./skills/`, без version) и обе регистрации по стилю соседних записей.
-- [ ] Написать SKILL.md: ссылки из spec, границы main/рабочей ветки/Cloud Mock, связь с источниками генерации и правилами команды. Для реальных команд отсылать к текущему help и официальным скиллам. Описать чтение проекта/прав с границами team get и фильтрацией настроек. Не зашивать абсолютные пути установки и меняющиеся MCP suffixes.
-- [ ] Обновить README: каталог, селектор apidog-cdd@cdd, актуальное количество плагинов/скиллов и установка официальных Apidog skills для обоих hosts через `npx -y skills add https://apidog.com --agent <codex|claude-code> --skill '*' --global --yes`. Пояснить отличие global от project scope, не запускать установку автоматически.
-- [ ] Проверить `bash tests/manifest_validation_test.sh`, `bash tests/manifest_test.sh` (6/12), `python3 /home/oleg/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/apidog-cdd/skills/apidog-cdd`, `git diff --check`. Все должны пройти.
-- [ ] Проверить сценарии на материалах скилла: A — запрос актуального main и разработка по sprint не смешивают ветки контракта/мока; C — запрос всех участников при наличии только teamPermissions завершается честной границей; D — ответ settings с token не попадает в вывод целиком. Записать наблюдаемое поведение в verification; не заменять проверки поиском буквальных фраз.
-- [ ] Коммит: `feat(apidog-cdd): add project context and dual-host packaging`.
+- [x] Прочитать spec, AGENTS.md и актуальные main `backend/docs/apidog.md`, `frontend/docs/api-contract.md`, `.github/CONTRIBUTING.md`; сверить project/team/branch через существующую авторизацию, выводя только нужные поля. Зафиксировать источники и дату в verification.
+- [x] Запустить базовые `bash tests/manifest_validation_test.sh` и `bash tests/manifest_test.sh`; сохранить результаты до изменений.
+- [x] Обновить контракт инвентаря в manifest_test: добавить apidog-cdd в EXPECTED и цикл. В независимые fixture-списки manifest_validation добавить плагин; ожидаемые итоги: 6 плагинов/12 скиллов, с дополнительным динамическим скиллом — 13. Добавить случаи отсутствия регистрации apidog-cdd и его Codex manifest, ожидающие ненулевой exit и диагностику проблемного пути/набора. Запустить проверки: реальный marketplace должен не пройти до регистрации нового плагина.
+- [x] Добавить оба манифеста по примеру frontend-packages (name `apidog-cdd`, author `Cringe-Driven-Development-Team`, Codex skills `./skills/`, без version) и обе регистрации по стилю соседних записей.
+- [x] Написать SKILL.md: ссылки из spec, границы main/рабочей ветки/Cloud Mock, связь с источниками генерации и правилами команды. Для реальных команд отсылать к текущему help и официальным скиллам. Описать чтение проекта/прав с границами team get и фильтрацией настроек. Не зашивать абсолютные пути установки и меняющиеся MCP suffixes.
+- [x] Обновить README: каталог, селектор apidog-cdd@cdd, актуальное количество плагинов/скиллов и установка официальных Apidog skills для обоих hosts через `npx -y skills add https://apidog.com --agent <codex|claude-code> --skill '*' --global --yes`. Пояснить отличие global от project scope, не запускать установку автоматически.
+- [x] Проверить `bash tests/manifest_validation_test.sh`, `bash tests/manifest_test.sh` (6/12), `python3 /home/oleg/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/apidog-cdd/skills/apidog-cdd`, `git diff --check`. Все должны пройти.
+- [x] Проверить сценарии на материалах скилла: A — запрос актуального main и разработка по sprint не смешивают ветки контракта/мока; C — запрос всех участников при наличии только teamPermissions завершается честной границей; D — ответ settings с token не попадает в вывод целиком. Записать наблюдаемое поведение в verification; не заменять проверки поиском буквальных фраз.
+- [x] Коммит: `feat(apidog-cdd): add project context and dual-host packaging`.
 
 ## Task 2: Ревью MR и итоговая проверка
 
@@ -76,5 +76,4 @@
 
 Покрыты контекст, официальные зависимости, права, секреты, MR scope и native-ресурсы,
 оба host manifests, README и existing validators. Пять Review Focus имеют сценарии
-A–E. Новых runtime-скриптов и зеркальных текстовых тестов нет. Способ выполнения
-пользователь ещё не выбрал.
+A–E. Новых runtime-скриптов и зеркальных текстовых тестов нет. Способ выполнения: `superpowers:executing-plans`, выбран пользователем.

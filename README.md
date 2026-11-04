@@ -25,7 +25,8 @@
     "ansible@cdd": true,
     "selectel-ops@cdd": true,
     "cdd-tasks@cdd": true,
-    "frontend-packages@cdd": true
+    "frontend-packages@cdd": true,
+    "apidog-cdd@cdd": true
   }
 }
 ```
@@ -43,8 +44,8 @@ codex plugin marketplace list
 codex plugin list
 ```
 
-Доступны пять селекторов: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
-`cdd-tasks@cdd`, `frontend-packages@cdd`. Установите нужные плагины, например:
+Доступны шесть селекторов: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
+`cdd-tasks@cdd`, `frontend-packages@cdd`, `apidog-cdd@cdd`. Установите нужные плагины, например:
 
 ```bash
 codex plugin add pulumi@cdd
@@ -60,7 +61,7 @@ enabled = true
 
 Для остальных выбранных плагинов добавьте такие же секции с их селекторами.
 В каталоге: Pulumi — 6 навыков, Ansible — 2, Selectel — 1, CDD Tasks — 1,
-Frontend Packages — 1, всего 11. Codex читает навыки из установленного
+Frontend Packages — 1, Apidog CDD — 1, всего 12. Codex читает навыки из установленного
 `plugins/cache/cdd/`. При проверке обнаружения через app-server используйте свежий `skills/list`
 с `cwds` проекта и `forceReload: true`; считайте только навыки CDD по
 `pluginId` и пути кэша. Подробности прежней клиентской проверки четырёх плагинов и обновления —
@@ -92,12 +93,35 @@ codex plugin marketplace upgrade cdd
 | `selectel-ops` | `selectel-ops` | собственный плагин организации (перенесён из YarikMix/claude-plugins) | MIT |
 | `cdd-tasks` | `cdd-tasks` | собственный — задачи и PR по `CONTRIBUTING.md` организации | MIT |
 | `frontend-packages` | `npm-publishing` | собственный — bootstrap npm-пакетов, Trusted Publisher и проверка автопубликации | MIT |
+| `apidog-cdd` | `apidog-cdd` | собственный — контекст Apidog Cellestial, права и ревью MR; поверх официальных скиллов | MIT |
 
 Для подключения библиотеки к npm: «подключи @cdd-team/<пакет> к автопубликации».
 Границы поручения, требования и проверки — в [README плагина](plugins/frontend-packages/README.md).
 
 Закреплённые коммиты — в `upstream.json`. Почему взяты именно эти скиллы и что сознательно не
 взято — `docs/design.md`.
+
+## Apidog CDD
+
+`apidog-cdd@cdd` добавляет ссылки и правила проекта Cellestial; общий CLI,
+ветки и тестирование описаны официальными скиллами Apidog. Они устанавливаются
+отдельно, в этот marketplace не копируются.
+
+Claude Code:
+
+```bash
+npx -y skills add https://apidog.com --agent claude-code --skill '*' --global --yes
+```
+
+Codex:
+
+```bash
+npx -y skills add https://apidog.com --agent codex --skill '*' --global --yes
+```
+
+`--global` устанавливает на уровне пользователя; без него — в текущий проект.
+`apidog skill install` также устанавливает официальный набор, по умолчанию
+локально. Установка скиллов не настраивает авторизацию Apidog.
 
 ## Обновление скиллов из апстримов
 

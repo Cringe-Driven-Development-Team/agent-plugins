@@ -31,6 +31,11 @@
       "name": "frontend-packages",
       "source": "./plugins/frontend-packages",
       "description": "npm-публикация библиотек frontend-packages: bootstrap, Trusted Publisher, проверка OIDC и восстановление частичных выпусков"
+    },
+    {
+      "name": "apidog-cdd",
+      "source": "./plugins/apidog-cdd",
+      "description": "Apidog команды CDD: контекст проекта Cellestial, контракты, права доступа и ревью Merge Request."
     }
   ]
 }

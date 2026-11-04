@@ -20,7 +20,7 @@ fail() { echo "  FAIL: $*"; FAILS=$((FAILS + 1)); }
 make_fixture() {
   mkdir -p "$FIXTURE/.claude-plugin" "$FIXTURE/.agents/plugins"
   jq -n '{name:"cdd", owner:{name:"Team"}, metadata:{description:"Fixture"},
-    plugins:["pulumi","ansible","selectel-ops","cdd-tasks","frontend-packages"]} | .plugins |=
+    plugins:["pulumi","ansible","selectel-ops","cdd-tasks","frontend-packages","apidog-cdd"]} | .plugins |=
     map({name:., source:("./plugins/" + .), description:"Fixture"})' \
     > "$FIXTURE/$CLAUDE_CATALOG"
   jq '{name, interface:{displayName:"Cringe Driven Development"}, plugins:
@@ -28,7 +28,7 @@ make_fixture() {
       policy:{installation:"AVAILABLE", authentication:"ON_INSTALL"}, category:"Productivity"}]}' \
     "$FIXTURE/$CLAUDE_CATALOG" > "$FIXTURE/$CODEX_CATALOG"
   local name count i
-  for name in pulumi ansible selectel-ops cdd-tasks frontend-packages; do
+  for name in pulumi ansible selectel-ops cdd-tasks frontend-packages apidog-cdd; do
     mkdir -p "$FIXTURE/plugins/$name/.claude-plugin" "$FIXTURE/plugins/$name/.codex-plugin"
     jq -n --arg name "$name" '{name:$name, description:"Fixture", author:{name:"Team"}}' \
       > "$FIXTURE/plugins/$name/.claude-plugin/plugin.json"
@@ -72,7 +72,20 @@ mutate() {
 
 test_valid_inventory() {
   make_case valid
-  expect_ok "$case_root" 'плагины=5, скиллы=11'
+  expect_ok "$case_root" 'плагины=6, скиллы=12'
+}
+
+test_missing_apidog_cdd_registration() {
+  make_case missing-apidog-registration
+  mutate "$CLAUDE_CATALOG" '.plugins |= map(select(.name != "apidog-cdd"))'
+  mutate "$CODEX_CATALOG" '.plugins |= map(select(.name != "apidog-cdd"))'
+  expect_fail "$case_root" 'неверный набор плагинов'
+}
+
+test_missing_apidog_cdd_codex_manifest() {
+  make_case missing-apidog-codex
+  rm "$case_root/plugins/apidog-cdd/.codex-plugin/plugin.json"
+  expect_fail "$case_root" 'plugins/apidog-cdd/.codex-plugin/plugin.json'
 }
 
 test_missing_frontend_packages_registration() {
@@ -208,12 +221,12 @@ test_dynamic_inventory() {
   make_case dynamic-inventory
   mkdir -p "$case_root/plugins/pulumi/skills/new-skill"
   printf 'Fixture\n' > "$case_root/plugins/pulumi/skills/new-skill/SKILL.md"
-  expect_ok "$case_root" 'плагины=5, скиллы=12'
+  expect_ok "$case_root" 'плагины=6, скиллы=13'
 }
 
 test_root_with_spaces() {
   make_case 'root with spaces'
-  expect_ok "$case_root" 'плагины=5, скиллы=11'
+  expect_ok "$case_root" 'плагины=6, скиллы=12'
 }
 
 make_fixture
