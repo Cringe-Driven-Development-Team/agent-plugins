@@ -39,6 +39,8 @@ ID сверены 2026-11-04. Перед работой сверяй выбра�
 | Несколько этапов изменения API | `apidog-workflow-api-lifecycle` |
 | Ошибка CLI или расхождение сохранения/отображения | `apidog-cli-checkup` |
 
+Для ревью MR читай [порядок проверки](references/review.md) и `apidog-branch`.
+
 Если скилла нет, сообщи и предложи `apidog skill install` (локально в текущем
 workspace). Для глобальной установки нужному host:
 `npx -y skills add https://apidog.com --agent codex --skill '*' --global --yes`

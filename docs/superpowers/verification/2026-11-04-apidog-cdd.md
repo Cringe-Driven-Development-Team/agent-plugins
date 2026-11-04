@@ -58,8 +58,20 @@ D предложил безопасный allowlist для stdout/stderr, не �
 Все три применения соответствуют ожидаемому результату.
 
 Дополнительно прошли `tests/sync_test.sh`, существующие check_docs Pulumi,
-Ansible, CDD Tasks и Selectel; 43 unit-теста Selectel. Результаты Task 2
-и итогового ревью дополняются после выполнения.
+Ansible, CDD Tasks и Selectel; 43 unit-теста Selectel.
+
+Guided Task 2, ещё один fresh-context агент, B/E: endpoint вне selection не
+приписан MR; partial/unsupported preview оставлены явными. Для выбранного mock
+при одинаковом OpenAPI запрошено native-чтение, полного заключения нет.
+Предложенные действия ограничены чтением и отчётом; публикация/approve/merge
+не выполнены. Все пять сценариев A–E проверены и прочитаны исполнителем.
+Исторические `/tmp/apidog-review-40254` артефакты недоступны; B/E используют
+те же синтетические вводные, что baseline, а не свежий снимок MR #40254.
+
+Повторные проверки Task 2: 129/0, упаковка 6/12, skill validation успешно,
+относительная ссылка `references/review.md` разрешается внутри plugin root,
+Claude manifest validation успешно с тем же ожидаемым предупреждением version,
+`git diff --check` чисто. Итоговое независимое ревью — после обоих task commits.
 
 ## Ограничения
 
