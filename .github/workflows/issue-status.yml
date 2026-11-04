@@ -1,0 +1,13 @@
+name: Issue status
+
+on:
+  issues:
+    types: [closed]
+
+permissions: {}
+
+jobs:
+  board:
+    uses: Cringe-Driven-Development-Team/.github/.github/workflows/add-to-project.yml@main
+    secrets:
+      ADD_TO_PROJECT_PAT: ${{ secrets.ADD_TO_PROJECT_PAT }}
