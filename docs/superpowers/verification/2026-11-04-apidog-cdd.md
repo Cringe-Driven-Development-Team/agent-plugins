@@ -71,7 +71,7 @@ Guided Task 2, ещё один fresh-context агент, B/E: endpoint вне se
 Повторные проверки Task 2: 129/0, упаковка 6/12, skill validation успешно,
 относительная ссылка `references/review.md` разрешается внутри plugin root,
 Claude manifest validation успешно с тем же ожидаемым предупреждением version,
-`git diff --check` чисто. Итоговое независимое ревью — после обоих task commits.
+`git diff --check` чисто. Итоговое независимое ревью выполнено после обоих task commits.
 
 ## Ограничения
 
@@ -80,3 +80,25 @@ Claude manifest validation успешно с тем же ожидаемым пр
 Offline-проверки оценивают ответы и предложенные действия, не успешность
 этих действий в реальном Apidog. Нет статистического утверждения о стабильности
 поведения; проверяется по одному применению каждого сценария в свежем контексте.
+
+## Итоговое ревью
+
+Свежий reviewer `gpt-6-astra`, high, диапазон `5a602c9..4cb49d7`:
+Ready to merge — Yes. Critical/Important/Minor — нет. Declined to judge — None.
+Независимо повторены 129 сценариев валидатора, упаковка 6/12, skill validation
+и diff check; замечаний нет. Полный прогон исполнителя также прошёл:
+manifest validation, manifest inventory, sync tests, четыре существующих
+check_docs, 43 unit-теста Selectel, skill validation, Claude plugin validation
+(ожидаемое предупреждение version) и git diff check.
+
+Решения исполнителя:
+
+1. Итоговое ревью перенесено после обоих task commits/task-done, как требует
+   executing-plans, вместо шага внутри Task 2. Цена ошибки: исправление ревью
+   потребовало бы дополнительного коммита; исправлений не потребовалось.
+2. Для reference skill выполнены по одному baseline и guided применению
+   каждого сценария, без пяти повторов микротеста формулировок. Цена: нет
+   статистической гарантии стабильности; это явно ограниченные application checks.
+
+Отложенных minor-замечаний нет. Изменения находятся в локальной ветке
+`skill/apidog-cdd`; публикация/слияние и установка нового плагина не выполнялись.
