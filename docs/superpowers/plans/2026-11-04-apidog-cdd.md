@@ -1,5 +1,9 @@
 # Apidog CDD Implementation Plan
 
+> Исторический документ: исходное имя `apidog-cdd` заменено на `cdd-apidog`
+> по [согласованной спецификации](../specs/2026-11-04-cdd-apidog-rename-design.md).
+> Прежние команды и результаты ниже сохранены как запись первоначальной работы.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Добавить один командный скилл apidog-cdd с контекстом проекта и практикой ревью MR поверх официальных скиллов Apidog.

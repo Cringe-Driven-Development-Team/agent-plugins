@@ -20,7 +20,7 @@ fail() { echo "  FAIL: $*"; FAILS=$((FAILS + 1)); }
 make_fixture() {
   mkdir -p "$FIXTURE/.claude-plugin" "$FIXTURE/.agents/plugins"
   jq -n '{name:"cdd", owner:{name:"Team"}, metadata:{description:"Fixture"},
-    plugins:["pulumi","ansible","selectel-ops","cdd-tasks","frontend-packages","apidog-cdd"]} | .plugins |=
+    plugins:["pulumi","ansible","selectel-ops","cdd-tasks","frontend-packages","cdd-apidog"]} | .plugins |=
     map({name:., source:("./plugins/" + .), description:"Fixture"})' \
     > "$FIXTURE/$CLAUDE_CATALOG"
   jq '{name, interface:{displayName:"Cringe Driven Development"}, plugins:
@@ -28,7 +28,7 @@ make_fixture() {
       policy:{installation:"AVAILABLE", authentication:"ON_INSTALL"}, category:"Productivity"}]}' \
     "$FIXTURE/$CLAUDE_CATALOG" > "$FIXTURE/$CODEX_CATALOG"
   local name count i
-  for name in pulumi ansible selectel-ops cdd-tasks frontend-packages apidog-cdd; do
+  for name in pulumi ansible selectel-ops cdd-tasks frontend-packages cdd-apidog; do
     mkdir -p "$FIXTURE/plugins/$name/.claude-plugin" "$FIXTURE/plugins/$name/.codex-plugin"
     jq -n --arg name "$name" '{name:$name, description:"Fixture", author:{name:"Team"}}' \
       > "$FIXTURE/plugins/$name/.claude-plugin/plugin.json"
@@ -75,17 +75,17 @@ test_valid_inventory() {
   expect_ok "$case_root" 'плагины=6, скиллы=12'
 }
 
-test_missing_apidog_cdd_registration() {
+test_missing_cdd_apidog_registration() {
   make_case missing-apidog-registration
-  mutate "$CLAUDE_CATALOG" '.plugins |= map(select(.name != "apidog-cdd"))'
-  mutate "$CODEX_CATALOG" '.plugins |= map(select(.name != "apidog-cdd"))'
+  mutate "$CLAUDE_CATALOG" '.plugins |= map(select(.name != "cdd-apidog"))'
+  mutate "$CODEX_CATALOG" '.plugins |= map(select(.name != "cdd-apidog"))'
   expect_fail "$case_root" 'неверный набор плагинов'
 }
 
-test_missing_apidog_cdd_codex_manifest() {
+test_missing_cdd_apidog_codex_manifest() {
   make_case missing-apidog-codex
-  rm "$case_root/plugins/apidog-cdd/.codex-plugin/plugin.json"
-  expect_fail "$case_root" 'plugins/apidog-cdd/.codex-plugin/plugin.json'
+  rm "$case_root/plugins/cdd-apidog/.codex-plugin/plugin.json"
+  expect_fail "$case_root" 'plugins/cdd-apidog/.codex-plugin/plugin.json'
 }
 
 test_missing_frontend_packages_registration() {

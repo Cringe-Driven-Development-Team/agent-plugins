@@ -1,5 +1,5 @@
 ---
-name: apidog-cdd
+name: cdd-apidog
 description: Use when working with Apidog contracts, branches, merge requests, Cloud Mock, project settings or access for Cellestial / Cringe-Driven-Development-Team, including project 1382426 and vb78fyael1.apidog.io.
 ---
 
