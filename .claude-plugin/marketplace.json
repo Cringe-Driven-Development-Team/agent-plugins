@@ -41,6 +41,11 @@
       "name": "cdd-product",
       "source": "./plugins/cdd-product",
       "description": "Обсуждение продукта Cellestial: краткий обзор, источники выбранного сценария и макеты перед brainstorming."
+    },
+    {
+      "name": "code-review",
+      "source": "./plugins/code-review",
+      "description": "Ревью ветки и PR: баги, правила проекта, комментарии и упрощение; исправления только предлагаются."
     }
   ]
 }

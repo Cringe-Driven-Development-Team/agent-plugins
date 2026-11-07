@@ -22,3 +22,7 @@ SOFTWARE.
 
 Скиллы в plugins/*/skills/* и файлы plugins/*/references распространяются под
 лицензиями своих апстримов — файл LICENSE лежит рядом с каждым из них.
+
+Весь каталог plugins/code-review/, включая адаптацию инструкций, манифесты
+и документацию, распространяется под Apache-2.0: plugins/code-review/LICENSE.
+Источники и изменения указаны в plugins/code-review/PROVENANCE.md.

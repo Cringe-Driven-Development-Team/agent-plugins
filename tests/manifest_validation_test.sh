@@ -20,7 +20,7 @@ fail() { echo "  FAIL: $*"; FAILS=$((FAILS + 1)); }
 make_fixture() {
   mkdir -p "$FIXTURE/.claude-plugin" "$FIXTURE/.agents/plugins"
   jq -n '{name:"cdd", owner:{name:"Team"}, metadata:{description:"Fixture"},
-    plugins:["pulumi","ansible","selectel-ops","cdd-tasks","frontend-packages","cdd-apidog","cdd-product"]} | .plugins |=
+    plugins:["pulumi","ansible","selectel-ops","cdd-tasks","frontend-packages","cdd-apidog","cdd-product","code-review"]} | .plugins |=
     map({name:., source:("./plugins/" + .), description:"Fixture"})' \
     > "$FIXTURE/$CLAUDE_CATALOG"
   jq '{name, interface:{displayName:"Cringe Driven Development"}, plugins:
@@ -28,7 +28,7 @@ make_fixture() {
       policy:{installation:"AVAILABLE", authentication:"ON_INSTALL"}, category:"Productivity"}]}' \
     "$FIXTURE/$CLAUDE_CATALOG" > "$FIXTURE/$CODEX_CATALOG"
   local name count i
-  for name in pulumi ansible selectel-ops cdd-tasks frontend-packages cdd-apidog cdd-product; do
+  for name in pulumi ansible selectel-ops cdd-tasks frontend-packages cdd-apidog cdd-product code-review; do
     mkdir -p "$FIXTURE/plugins/$name/.claude-plugin" "$FIXTURE/plugins/$name/.codex-plugin"
     jq -n --arg name "$name" '{name:$name, description:"Fixture", author:{name:"Team"}}' \
       > "$FIXTURE/plugins/$name/.claude-plugin/plugin.json"
@@ -72,7 +72,22 @@ mutate() {
 
 test_valid_inventory() {
   make_case valid
-  expect_ok "$case_root" 'плагины=7, скиллы=13'
+  expect_ok "$case_root" 'плагины=8, скиллы=14'
+}
+
+test_missing_code_review_registration() {
+  local catalog
+  for catalog in "$CLAUDE_CATALOG" "$CODEX_CATALOG"; do
+    make_case missing-code-review-registration
+    mutate "$catalog" '.plugins |= map(select(.name != "code-review"))'
+    expect_fail "$case_root" 'неверный набор плагинов'
+  done
+}
+
+test_missing_code_review_codex_manifest() {
+  make_case missing-code-review-codex
+  rm "$case_root/plugins/code-review/.codex-plugin/plugin.json"
+  expect_fail "$case_root" 'plugins/code-review/.codex-plugin/plugin.json'
 }
 
 test_missing_cdd_apidog_registration() {
@@ -221,12 +236,12 @@ test_dynamic_inventory() {
   make_case dynamic-inventory
   mkdir -p "$case_root/plugins/pulumi/skills/new-skill"
   printf 'Fixture\n' > "$case_root/plugins/pulumi/skills/new-skill/SKILL.md"
-  expect_ok "$case_root" 'плагины=7, скиллы=14'
+  expect_ok "$case_root" 'плагины=8, скиллы=15'
 }
 
 test_root_with_spaces() {
   make_case 'root with spaces'
-  expect_ok "$case_root" 'плагины=7, скиллы=13'
+  expect_ok "$case_root" 'плагины=8, скиллы=14'
 }
 
 make_fixture

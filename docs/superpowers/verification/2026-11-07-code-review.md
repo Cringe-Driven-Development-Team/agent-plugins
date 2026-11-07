@@ -1,8 +1,8 @@
 # Проверка code-review@cdd — 2026-11-07
 
 Этот отчёт различает поведенческие прогоны, структурные проверки и клиентскую
-приёмку. Задача 1 проверяет локальное ревью; публикация PR и установка плагина
-относятся к последующим задачам. В личные профили плагин не устанавливался;
+приёмку. Задача 1 проверяет локальное ревью, задача 2 — публикацию PR на
+управляемых ответах, задача 3 — упаковку и обнаружение установленного плагина. В личные профили плагин не устанавливался;
 в живые PR тестовые комментарии не отправлялись.
 
 ## Задача 1: метод и baseline/green
@@ -203,3 +203,130 @@ Self-check в отдельной временной копии: 60 конкур�
 Живой GitHub, конкретные MCP/gh схемы, реальные права и native client discovery
 здесь не проверялись. Плагин не установлен в личные профили. Упаковка отложена
 до соответствующей задачи; временные адаптеры не являются production-инструментами.
+
+
+## Задача 3: структурная регрессия
+
+База упаковки: `01e25ee447dc2743b58748f4cd5bd188f80e7628`. Два манифеста
+`code-review`, автор Cringe-Driven-Development-Team, одинаковое description;
+Codex `skills: "./skills/"`. Обе записи marketplace без version. В каталоге
+**8 плагинов / 14 навыков**. Весь `plugins/code-review/` явно исключён из
+корневой MIT-лицензии и распространяется под Apache-2.0.
+
+Независимая фикстура сначала расширена до 8/14, динамический случай — 8/15.
+Добавлены отдельные удаления code-review из каждого каталога и удаление его
+Codex-манифеста. До обновления валидатора `bash tests/manifest_validation_test.sh`
+завершился exit 1: **132 сценария, 73 провала**. Валидатор отклонил новый набор
+с `code-review`; положительные 8/14 и 8/15 не прошли, как и ожидалось.
+После обновления EXPECTED и обхода — **132 сценария, 0 провалов**, exit 0.
+
+Остальные выполненные команды (все exit 0):
+
+```text
+bash tests/manifest_test.sh                       плагины=8, скиллы=14
+bash tests/sync_test.sh                           16 именованных тестов, всё прошло
+bash plugins/pulumi/tests/check_docs.sh           PASS
+bash plugins/ansible/tests/check_docs.sh          PASS
+bash plugins/cdd-tasks/tests/check_docs.sh         документы в порядке
+bash plugins/selectel-ops/tests/check_docs.sh     PASS
+# Из plugins/selectel-ops:
+python3 -m unittest discover -s tests -t .         43 tests, OK
+```
+
+Diff относительно базы для `scripts/sync.sh`, `upstream.json`, семи прежних
+каталогов плагинов и `plugins/code-review/skills/` пуст. Их поведение и исходники
+задача 3 не меняла. `git diff --check` — exit 0.
+
+## Задача 3: реальная клиентская приёмка
+
+Платформа: Linux x86_64, Codex CLI **0.167.0**, Claude Code **2.1.289**.
+Сначала прочитаны актуальные локальные `--help`, `plugin --help`, install/add и
+marketplace help. Для Codex экспортирована RPC-схема текущего клиента:
+`codex app-server generate-json-schema --experimental --out <tmp>/schemas`.
+Сверены `v1/InitializeParams.json`, `v1/InitializeResponse.json` и
+`v2/SkillsListParams.json`. Схема поддерживает `cwds` и `forceReload`.
+Официальные справочники: [упаковка OpenAI Plugins](https://developers.openai.com/plugins/build/plugins)
+и [профили Claude Code](https://code.claude.com/docs/en/settings).
+
+Созданы временные профили `<tmp>/codex` и `<tmp>/claude`, где
+`<tmp> = /tmp/code-review-task3-mn0a7ox6`, и отдельный Git-проект `<tmp>/project`.
+В env-map только дочерних процессов заданы временные `CODEX_HOME` или
+`CLAUDE_CONFIG_DIR`; HOME и среда сессии не изменены. Личные конфиги и credentials
+не копировались; переменные с API_KEY/TOKEN/SECRET/PASSWORD исключены из дочерней
+среды. Модельные вызовы, eval и живой GitHub не запускались.
+
+### Codex: установленный навык
+
+Временный config профиля доверяет только тестовому проекту; его
+`.codex/config.toml` содержит `[plugins."code-review@cdd"] enabled = true`.
+Первый app-server `initialize` подтвердил временный codexHome; исходный
+`skills/list` вернул **0 CDD-навыков**, без ошибок. Затем (оба exit 0):
+
+```text
+codex plugin marketplace add /home/oleg/2026_H2/agent-plugins-code-review --json
+codex plugin add code-review@cdd --json
+```
+
+После установки запущен новый `codex app-server --stdio`. Последовательно,
+после получения initialize, отправлены:
+
+```json
+{"id":1,"method":"initialize","params":{"clientInfo":{"name":"cdd-acceptance","version":"1"},"capabilities":{"experimentalApi":true}}}
+{"method":"initialized"}
+{"id":2,"method":"skills/list","params":{"cwds":["/tmp/code-review-task3-mn0a7ox6/project"],"forceReload":true}}
+```
+
+Ответ без ошибок: ровно один навык с `pluginId=code-review@cdd`,
+`name=code-review:code-review`, `enabled=true`; фактический путь:
+
+```text
+/tmp/code-review-task3-mn0a7ox6/codex/plugins/cache/cdd/code-review/local/skills/code-review/SKILL.md
+```
+
+Общие пользовательские/системные навыки в число не включены. CLI предупредил
+`Refusing to create helper binaries under temporary dir`, но команды и RPC
+успешны; этот warning относится к временным PATH helpers.
+
+### Claude Code: установленный навык
+
+`claude plugin validate .` и `claude plugin validate plugins/code-review`
+завершились exit 0: соответственно 8 и 1 предупреждений об отсутствии version,
+что соответствует политике репозитория. Одной валидацией приёмка не ограничена.
+В отдельном временном профиле выполнены (все exit 0):
+
+```text
+claude plugin marketplace add /home/oleg/2026_H2/agent-plugins-code-review
+claude plugin install code-review@cdd --scope user --json
+claude plugin details code-review@cdd
+```
+
+`install` вернул `outcome=ok`, `pluginId=code-review@cdd`; `details`:
+`Source: code-review@cdd`, **Skills (1) code-review**, Agents/Hooks/MCP/LSP — 0.
+Auth не потребовалась для этой metadata-проверки. Установленная копия:
+`<tmp>/claude/plugins/cache/cdd/code-review/01e25ee447dc` (версия вычислена
+клиентом из текущего Git HEAD без version в манифесте).
+
+### Ресурсы, артефакты и границы
+
+В обоих установленных кэшах побайтово сравнены с исходниками шесть файлов:
+SKILL.md, оба references, обе LICENSE и PROVENANCE.md. Все совпали. В частности:
+
+| Ресурс | SHA-256 в обоих кэшах и исходнике |
+| --- | --- |
+| references/analysis.md | `3be6093f08cbe062512c6bade7adb42457e7ec331aea470299ab4b819e4b6de6` |
+| references/publishing.md | `9874ecb269a3d3aec81c4d3e29ffe2eece4efda40fa09a874bcef7f4c7ce30e4` |
+| LICENSE (обе копии) | `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30` |
+
+Временные сырые артефакты вне Git: `<tmp>/acceptance.py`, `schemas/`,
+`codex-before.json`, `codex-installed.json`, `codex-cli.log`,
+`codex-resource-checks.json`, `claude-cli.log`, `claude-resource-checks.json`,
+`claude-install-record.json`. При первом чтении Codex метаданных тестовый
+скрипт не учёл `pluginId=null` у обычных навыков; фильтр исправлен, весь
+сценарий повторён до установки. Это ошибка тестового адаптера, не клиента.
+
+Оба app-server остановлены в finally; временные профили Codex и Claude удалены
+после сохранения результатов. Пользовательские плагины не изменены. Проверены
+установка и обнаружение metadata обоими клиентами; вызов навыка через модель в
+клиенте, реальные GitHub права/публикация и Git-обновление новой адаптации здесь
+не проверялись. Поведенческие доказательства задач 1–2 приведены выше отдельно;
+структурная и клиентская проверки не заменяют их.
