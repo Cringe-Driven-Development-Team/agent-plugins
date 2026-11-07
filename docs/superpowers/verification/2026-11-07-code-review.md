@@ -408,3 +408,33 @@ SKILL.md — `758b6af3abae3d86109d37a589e14dd344cfe11f83dd4d1d6e1b8d9b56b030ba`,
 publishing.md — `1deffdc38c56b982170e805bb74ddbf964b10f9b9ac969333cb467da194834cf`.
 Живые GitHub write/права, новая клиентская установка и статистическая надёжность
 этой узкой проверкой не подтверждаются. Прежние широкие suites не повторялись.
+
+
+## Итог ревью реализации
+
+Все три задачи прошли отдельное ревью соответствия спецификации и качества.
+Общее ревью диапазона `04b3289..864f62a` нашло один Important: начальный pending
+мог ошибочно считаться опубликованным дублем. Исправление `0f9a223` прошло
+единственное узкое повторное ревью: ADDRESSED, новых проблем не найдено.
+Открытых замечаний по реализации не осталось. Контроллер отдельно сверил
+15 операций green по сырым состояниям и журналу; проверка whitespace всей ветки
+прошла. Повтор широких suites после правки только инструкций не выполнялся;
+эта правка покрыта описанной выше узкой приёмкой.
+
+## Решения контроллера и границы доказательств
+
+Ниже сохранены все решения из рабочего журнала в порядке принятия; они
+не подменяют согласованную спецификацию или эмпирические результаты.
+
+- controller owns fresh baseline/green behavioral agent dispatch for tasks 1–2 — implementers must not spawn subagents — extra coordination but avoids duplicate review seats.
+- code-review skill and references are tested as instructions, not by phrase-matching — structural manifest tests retain their existing scope — live behavior remains nondeterministic and must be reported honestly.
+- final draft PR on our own feature branch is authorized by approved plan and task, no merge or user-profile installation — concrete delivery requires a reviewable PR — no live student PR receives test comments.
+- task reviews assess their own deliverable; cross-task requirements listed as deferred until owning task — enables sequential implementation without claiming completed integration early — final review covers all requirements.
+- use the approved baseline/green behavioral acceptance rather than five wording micro-repetitions per variant — baseline already passes core analysis and no semantic failure justifies iterative wording optimization — evidence is one observation per phase, not statistical reliability or proven quality uplift; preserve this limitation in verification/final report.
+- no statistical reliability/superiority claim — single fresh behavioral observations support only the exercised cases — model variance remains unmeasured.
+- installed-client metadata and controlled GitHub operations are acceptance boundaries, not live model/API certification — no test comments or credential copying — real-account permissions/API behavior remain unverified.
+- retain SHA binding and immediate rechecks without an atomic server-side locking service — approved instructions-only architecture — concurrent changes after the last read remain possible.
+- browser workaround examples and optional suggestions are reviewed as text, not executed in real browsers or applied to student code — preserve advisory scope — hardware behavior and suggestion application are not established by these tests.
+- do not add a further narrow-scope model run or marketplace upgrade roundtrip — these are disclosed omissions beyond this acceptance — those paths have less direct evidence than scope instructions and initial installation.
+- preserve and disclose upstream Apache LICENSE plus contradictory MIT README, without claiming to settle legal title — faithful attribution is in scope — upstream clarification remains a separate legal/provenance question.
+- deliver the authorized draft PR, leave merge to a later request — approved plan ends in a reviewable proposal — plugin is not available from main until merged.
