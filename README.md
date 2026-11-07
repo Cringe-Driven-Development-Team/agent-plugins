@@ -26,7 +26,8 @@
     "selectel-ops@cdd": true,
     "cdd-tasks@cdd": true,
     "frontend-packages@cdd": true,
-    "cdd-apidog@cdd": true
+    "cdd-apidog@cdd": true,
+    "cdd-product@cdd": true
   }
 }
 ```
@@ -44,8 +45,8 @@ codex plugin marketplace list
 codex plugin list
 ```
 
-Доступны шесть селекторов: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
-`cdd-tasks@cdd`, `frontend-packages@cdd`, `cdd-apidog@cdd`. Установите нужные плагины, например:
+Доступны семь селекторов: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
+`cdd-tasks@cdd`, `frontend-packages@cdd`, `cdd-apidog@cdd`, `cdd-product@cdd`. Установите нужные плагины, например:
 
 ```bash
 codex plugin add pulumi@cdd
@@ -61,7 +62,7 @@ enabled = true
 
 Для остальных выбранных плагинов добавьте такие же секции с их селекторами.
 В каталоге: Pulumi — 6 навыков, Ansible — 2, Selectel — 1, CDD Tasks — 1,
-Frontend Packages — 1, Apidog CDD — 1, всего 12. Codex читает навыки из установленного
+Frontend Packages — 1, Apidog CDD — 1, Cellestial Product — 1, всего 13. Codex читает навыки из установленного
 `plugins/cache/cdd/`. При проверке обнаружения через app-server используйте свежий `skills/list`
 с `cwds` проекта и `forceReload: true`; считайте только навыки CDD по
 `pluginId` и пути кэша. Подробности прежней клиентской проверки четырёх плагинов и обновления —
@@ -94,6 +95,10 @@ codex plugin marketplace upgrade cdd
 | `cdd-tasks` | `cdd-tasks` | собственный — задачи и PR по `CONTRIBUTING.md` организации | MIT |
 | `frontend-packages` | `npm-publishing` | собственный — bootstrap npm-пакетов, Trusted Publisher и проверка автопубликации | MIT |
 | `cdd-apidog` | `cdd-apidog` | собственный — контекст Apidog Cellestial, права и ревью MR; поверх официальных скиллов | MIT |
+| `cdd-product` | `cellestial-product` | собственный — подготовка к обсуждению продукта; перенесён из docs | MIT |
+
+Плагин `cdd-product@cdd` содержит перенесённый из docs скилл `cellestial-product`;
+его имя сохранено. Подключение и назначение — в [README плагина](plugins/cdd-product/README.md).
 
 Для новых скиллов с контекстом команды используем имя `cdd-<область>`:
 например, `cdd-tasks` и `cdd-apidog`.

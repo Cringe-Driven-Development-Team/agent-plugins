@@ -36,6 +36,11 @@
       "name": "cdd-apidog",
       "source": "./plugins/cdd-apidog",
       "description": "Apidog команды CDD: контекст проекта Cellestial, контракты, права доступа и ревью Merge Request."
+    },
+    {
+      "name": "cdd-product",
+      "source": "./plugins/cdd-product",
+      "description": "Обсуждение продукта Cellestial: краткий обзор, источники выбранного сценария и макеты перед brainstorming."
     }
   ]
 }
