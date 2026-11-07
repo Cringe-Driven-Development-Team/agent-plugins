@@ -8,7 +8,7 @@ fail() { echo "  FAIL: $*" >&2; exit 1; }
 ROOT=$(cd -P "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd -P) || fail 'недоступен корень маркетплейса'
 CLAUDE=$ROOT/.claude-plugin/marketplace.json
 CODEX=$ROOT/.agents/plugins/marketplace.json
-EXPECTED='["ansible","cdd-apidog","cdd-tasks","frontend-packages","pulumi","selectel-ops"]'
+EXPECTED='["ansible","cdd-apidog","cdd-product","cdd-tasks","frontend-packages","pulumi","selectel-ops"]'
 
 check_json() {
   [ -f "$1" ] || fail "${1#"$ROOT"/}: нет файла"
@@ -53,7 +53,7 @@ check "$CODEX" 'all(.plugins[]; (.source | type == "object") and .source.source 
 
 SKILLS=0
 PLUGINS=0
-for name in ansible cdd-apidog cdd-tasks frontend-packages pulumi selectel-ops; do
+for name in ansible cdd-apidog cdd-product cdd-tasks frontend-packages pulumi selectel-ops; do
   expected_path=./plugins/$name
   for catalog in "$CLAUDE" "$CODEX"; do
     if [ "$catalog" = "$CLAUDE" ]; then field='.source'; else field='.source.path'; fi
