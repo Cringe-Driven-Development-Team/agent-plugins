@@ -27,7 +27,8 @@
     "cdd-tasks@cdd": true,
     "frontend-packages@cdd": true,
     "cdd-apidog@cdd": true,
-    "cdd-product@cdd": true
+    "cdd-product@cdd": true,
+    "code-review@cdd": true
   }
 }
 ```
@@ -45,8 +46,8 @@ codex plugin marketplace list
 codex plugin list
 ```
 
-Доступны семь селекторов: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
-`cdd-tasks@cdd`, `frontend-packages@cdd`, `cdd-apidog@cdd`, `cdd-product@cdd`. Установите нужные плагины, например:
+Доступны восемь селекторов: `pulumi@cdd`, `ansible@cdd`, `selectel-ops@cdd`,
+`cdd-tasks@cdd`, `frontend-packages@cdd`, `cdd-apidog@cdd`, `cdd-product@cdd`, `code-review@cdd`. Установите нужные плагины, например:
 
 ```bash
 codex plugin add pulumi@cdd
@@ -62,7 +63,7 @@ enabled = true
 
 Для остальных выбранных плагинов добавьте такие же секции с их селекторами.
 В каталоге: Pulumi — 6 навыков, Ansible — 2, Selectel — 1, CDD Tasks — 1,
-Frontend Packages — 1, Apidog CDD — 1, Cellestial Product — 1, всего 13. Codex читает навыки из установленного
+Frontend Packages — 1, Apidog CDD — 1, Cellestial Product — 1, Code Review — 1, всего 14. Codex читает навыки из установленного
 `plugins/cache/cdd/`. При проверке обнаружения через app-server используйте свежий `skills/list`
 с `cwds` проекта и `forceReload: true`; считайте только навыки CDD по
 `pluginId` и пути кэша. Подробности прежней клиентской проверки четырёх плагинов и обновления —
@@ -96,6 +97,7 @@ codex plugin marketplace upgrade cdd
 | `frontend-packages` | `npm-publishing` | собственный — bootstrap npm-пакетов, Trusted Publisher и проверка автопубликации | MIT |
 | `cdd-apidog` | `cdd-apidog` | собственный — контекст Apidog Cellestial, права и ревью MR; поверх официальных скиллов | MIT |
 | `cdd-product` | `cellestial-product` | собственный — подготовка к обсуждению продукта; перенесён из docs | MIT |
+| `code-review` | `code-review` | адаптация [Anthropic](plugins/code-review/PROVENANCE.md): ревью, комментарии, упрощение | Apache-2.0 |
 
 Плагин `cdd-product@cdd` содержит перенесённый из docs скилл `cellestial-product`;
 его имя сохранено. Подключение и назначение — в [README плагина](plugins/cdd-product/README.md).
@@ -106,7 +108,12 @@ codex plugin marketplace upgrade cdd
 Для подключения библиотеки к npm: «подключи @cdd-team/<пакет> к автопубликации».
 Границы поручения, требования и проверки — в [README плагина](plugins/frontend-packages/README.md).
 
-Закреплённые коммиты — в `upstream.json`. Почему взяты именно эти скиллы и что сознательно не
+`code-review@cdd` проверяет ветку и PR, не меняя проверяемый код. Явный вызов
+для конкретного PR включает публикацию замечаний; «только в чате» её отменяет.
+Примеры для обоих клиентов и ручные обновления — в [README плагина](plugins/code-review/README.md),
+клиентская приёмка — в [отчёте](docs/superpowers/verification/2026-11-07-code-review.md).
+
+Закреплённые коммиты синхронизируемых навыков — в `upstream.json`. Почему взяты именно эти скиллы и что сознательно не
 взято — `docs/design.md`.
 
 ## Apidog CDD
@@ -142,7 +149,9 @@ git diff                   # прочитать, что изменилось в 
 Для Claude Code обновляйте маркетплейс командой `/plugin marketplace update cdd`.
 Порядок обновления установленной копии Codex приведён в
 [разделе подключения](#подключение-в-codex).
-Скиллы апстримов руками не правим: следующий `sync.sh` затрёт правки.
+`code-review` обновляется вручную по [PROVENANCE](plugins/code-review/PROVENANCE.md),
+в `sync.sh` и `upstream.json` не входит.
+Скиллы синхронизируемых апстримов руками не правим: следующий `sync.sh` затрёт правки.
 Нужна своя версия — отдельный скилл в том же плагине.
 
 Зависимости: `bash`, `git`, `jq`. Проверка двух каталогов и манифестов:
@@ -220,4 +229,6 @@ bash tests/manifest_test.sh
 ## Лицензии
 
 Собственные файлы репо — MIT (`LICENSE`). Скиллы и `plugins/*/references` — лицензии апстримов,
-файл `LICENSE` лежит рядом с каждым.
+файл `LICENSE` лежит рядом с каждым. Весь `plugins/code-review/`, включая адаптацию,
+манифесты и документацию, — Apache-2.0 ([LICENSE](plugins/code-review/LICENSE),
+[происхождение](plugins/code-review/PROVENANCE.md)).

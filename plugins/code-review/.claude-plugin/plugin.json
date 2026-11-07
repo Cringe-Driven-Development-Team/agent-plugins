@@ -1,0 +1,7 @@
+{
+  "name": "code-review",
+  "description": "Ревью ветки и PR: баги, правила проекта, комментарии и упрощение; исправления только предлагаются.",
+  "author": {
+    "name": "Cringe-Driven-Development-Team"
+  }
+}
