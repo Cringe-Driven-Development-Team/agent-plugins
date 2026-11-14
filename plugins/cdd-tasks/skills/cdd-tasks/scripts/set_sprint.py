@@ -14,7 +14,7 @@ OWNER = 'Cringe-Driven-Development-Team'
 def normalize_issue_url(value: str) -> str:
     match = re.fullmatch(
         rf'https://github\.com/{OWNER}/([a-z0-9_.-]+)/issues/([1-9][0-9]*)/?',
-        value, re.IGNORECASE,
+        value, re.IGNORECASE | re.ASCII,
     )
     if not match or match[1] in ('.', '..'):
         raise ValueError(f'Нужна ссылка на issue организации {OWNER}: {value}')

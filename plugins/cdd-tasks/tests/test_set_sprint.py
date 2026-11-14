@@ -89,6 +89,11 @@ class UrlTest(unittest.TestCase):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 app.normalize_issue_url(url)
 
+    def test_rejects_unicode_hostname_lookalikes(self):
+        for host in ['gıthub.com', 'gİthub.com']:
+            with self.subTest(host=host), self.assertRaises(ValueError):
+                app.normalize_issue_url(URL_A.replace('github.com', host))
+
 
 class ClockTest(unittest.TestCase):
     def test_uses_moscow_date_at_utc_boundary(self):
