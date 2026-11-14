@@ -176,6 +176,83 @@ gh project item-edit --project-id "$PROJECT" --id "$ITEM" \
 Успешный ответ записи этого не доказывает. При расхождении сообщи фактические значения;
 не объявляй назначение завершённым и не перезаписывай статус вслепую.
 
+### Привязать трек к графу модулей
+
+Файлы модулей ведёт `docs-modules`; здесь — только Projects и проверка результата.
+Просьба добавить трек с указанными задачами уже разрешает нужную привязку «Трек».
+Прочитай актуальный docs-modules и контракт пакета в репозитории docs: `board`
+из `site/modules/module-graph.yaml`, `sprints` модуля и id файла трека. Не выводи
+id трека из его заголовка. `issues` внутри подзадачи показывает карточку задачи,
+но прогресс трека определяется полем «Трек» на доске.
+
+До записи прочитай текущие поля, родителей и всех sub-issues с пагинацией (§2).
+Сохрани Status, Sprint, Assignees и посторонние поля. У sub-issue без собственного
+«Трека» используется родительский; модуль определяется собственным спринтом задачи,
+без спринта — текущий. Если id трека отсутствует в этом модуле, задача не попадёт
+в его прогресс. Не меняй спринт ради графа.
+
+Если родитель включает завершённых детей прошлых модулей, не назначай весь набор
+новому треку. Привяжи явно целевых текущих детей; привязку смешанного родителя
+оставь до отдельного решения. Проверь эффект наследования даже для детей с пустым
+полем. Существующий другой трек — отдельный конфликт: уточни перенос этой задачи,
+остальные согласованные привязки выполни независимо.
+
+Найди PROJECT и ITEM по текущей доске (§3 выше), field/option — по именам:
+
+```bash
+gh project field-list 1 --owner Cringe-Driven-Development-Team --limit 100 --format json \
+  --jq '.fields[] | select(.name=="Трек") | {id,options}'
+TRACK_FIELD='ID поля Трек из ответа'
+TRACK_OPTION='ID варианта, name которого равен id трека'
+```
+
+Если варианта нет, подготовь файлы и PR по docs-modules. Новые варианты добавляет
+штатный job board workflow Pages в docs на main. Дождись отдельно разрешённого
+merge и успешного CI, затем перечитай options. Не запускай локальный
+`module-graph board sync` и не создавай option вручную: sync заменяет список
+вариантов целиком. Поручение привязать задачи не разрешает merge docs PR.
+Сообщи отдельно, что подготовлено, что ждёт merge/CI и что ещё не опубликовано.
+
+До и после записи прочитай карточку (для остальных полей/Assignees также сравни
+исходный снимок и issue):
+
+```bash
+gh api graphql -F item="$ITEM" -f query='query($item: ID!) {
+  node(id: $item) { ... on ProjectV2Item {
+    track: fieldValueByName(name: "Трек") {
+      ... on ProjectV2ItemFieldSingleSelectValue { optionId name }
+    }
+    status: fieldValueByName(name: "Status") {
+      ... on ProjectV2ItemFieldSingleSelectValue { optionId name }
+    }
+    sprint: fieldValueByName(name: "Sprint") {
+      ... on ProjectV2ItemFieldIterationValue { iterationId title }
+    }
+  } }
+}' --jq '.data.node'
+```
+
+Для необходимой явной привязки меняй только «Трек»; уже правильное значение или
+достаточное безопасное наследование не требуют повторной записи:
+
+```bash
+gh project item-edit --project-id "$PROJECT" --id "$ITEM" \
+  --field-id "$TRACK_FIELD" --single-select-option-id "$TRACK_OPTION"
+```
+
+Перечитай GitHub: проверь optionId, сохранность остальных полей и наследование.
+После этого проверь свежий snapshot и граф по docs-modules. Снимок — read-only,
+в репозитории docs (board.json не коммитить):
+
+```bash
+GH_TOKEN="$(gh auth token)" bunx module-graph board snapshot site/modules/board.json
+```
+
+Если данные GitHub правильные, а сайт ещё показывает старый снимок, дождись Pages;
+не добавляй фиктивные issues или новый спринт ради отображения. Успешный item-edit
+не доказывает публикацию: отчёт различает файлы/PR, запись поля, свежий snapshot
+и опубликованный граф. Если проверить сайт не удалось, скажи об этом явно.
+
 ### Карточка привязана, но не отображается
 
 Сначала проверь исполнителя, проект, `isArchived`, Status, Sprint (по датам), фильтр
@@ -225,7 +302,7 @@ gh pr create -R Cringe-Driven-Development-Team/frontend --base main \
   --title "WEB-12: Форма входа" --body-file pr.md
 ```
 
-Первая строка `pr.md` — `Closes #12`. Ментор frontend обязательно проверяет PR.
+Первая строка `pr.md` — `Closes #12`. По умолчанию PR проверяет ментор frontend.
 Backend также в Cringe-Driven-Development-Team/backend:
 `api-12`, `API-12: …`, `Closes #12`; обязательный review Александра, кроме
 персонального backend-исключения `YarikMix`, описанного ниже.
@@ -240,19 +317,70 @@ gh pr view <номер> -R <репозиторий> --json closingIssuesReferenc
 Пустой список при строке `Closes …` — проверить номер задачи и репозиторий PR.
 При `Part of …` пустой список — норма.
 
-Задача закрывается при мерже в ветку по умолчанию. Frontend и backend требуют
-апрува ментора, в том числе после переноса в командную организацию. По отдельному
-решению владельца `YarikMix` может обычным merge принять backend PR без Approve,
-включая свой. Перед merge проверь authenticated account и действующий персональный
-approval ruleset: PR, актуальная ветка, `lint/test/docker` и разрешение обсуждений
-остаются обязательными. `--admin`, bypass CI/integrity и перенос исключения на
-frontend или других участников не допускаются. Если `gh pr merge` останавливается
-на общем `Review required`, при подтверждённом YarikMix-исключении можно вызвать
-стандартный `PUT repos/Cringe-Driven-Development-Team/backend/pulls/N/merge`:
-`sha` равен проверенному актуальному head, `merge_method=merge`. Перед вызовом снова
-проверь аккаунт, персональный approval ruleset, required checks, актуальность ветки
-и обсуждения. Не меняй rulesets ради обхода ошибки и не передавай admin override.
-Учебные frontend и backend — копии main без Actions; рабочие PR и review остаются в команде.
+Frontend issue штатно закрывает успешный CD (§7), backend и остальные — merge
+закрывающего PR в default branch. Учебные репозитории остаются копиями main без
+рабочих PR/Actions; review выполняется в команде.
+
+### Разрешение и проверка merge
+
+По умолчанию frontend и backend требуют апрува ментора. Технический доступ сам по
+себе не разрешает merge. Явное поручение владельца и действующее в сессии разрешение
+на bypass review имеют приоритет над ограничениями этого скилла/CONTRIBUTING:
+не проси их повторно. Такое личное исключение не распространяется на команду.
+Поручение только проверить PR или подготовить его не разрешает merge.
+
+При поручении на merge проверь аккаунт, применимые правила и доступный метод:
+
+```bash
+PR_REPO='Cringe-Driven-Development-Team/frontend'  # фактический репозиторий
+PR_NUMBER='номер PR'
+gh api user --jq .login
+gh pr view "$PR_NUMBER" -R "$PR_REPO" \
+  --json state,isDraft,headRefOid,baseRefName,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup
+PR_HEAD='полный проверяемый headRefOid'
+gh pr checks "$PR_NUMBER" -R "$PR_REPO" --required
+```
+
+Сверь, что успешные обязательные checks принадлежат именно PR_HEAD, база верна,
+PR открыт, конфликты отсутствуют, прочие обязательные требования выполнены.
+Непосредственно перед операцией перечитай head; при изменении повтори проверки
+для нового SHA. Красный/идущий CI и неизвестная mergeability не дают оснований
+для merge, даже при разрешении bypass review. Rulesets ради merge не меняй.
+
+Обычный merge (метод замени на допустимый в репозитории):
+
+```bash
+gh pr merge "$PR_NUMBER" -R "$PR_REPO" --merge --match-head-commit "$PR_HEAD"
+```
+
+Если для порученного merge необходим разрешённый владельцем обход review:
+
+```bash
+gh pr merge "$PR_NUMBER" -R "$PR_REPO" --merge --admin --match-head-commit "$PR_HEAD"
+```
+
+Mismatch SHA — повод заново проверить head, а не убрать защиту. Если GitHub не
+разрешает операцию, сообщи конкретный ответ; разрешение владельца не даёт прав
+изменять правила или обходить CI. После успеха проверь:
+
+```bash
+gh pr view "$PR_NUMBER" -R "$PR_REPO" \
+  --json state,mergedAt,mergeCommit,closingIssuesReferences,url
+```
+
+Нужны фактический MERGED, merge SHA и относящиеся post-merge проверки (§6–7),
+а не только exit 0 команды. Запуск CD отдельно не разрешён поручением на merge.
+
+У команды также есть персональное backend-исключение: authenticated `YarikMix`
+может обычным merge принять backend PR без Approve, включая свой. Перед ним сверь
+действующий персональный approval ruleset: PR, актуальная ветка, успешные
+`lint/test/docker` и разрешённые обсуждения остаются обязательными. Если CLI
+останавливается на общем `Review required`, при подтверждённом исключении допустим
+стандартный `PUT repos/Cringe-Driven-Development-Team/backend/pulls/N/merge` с
+`sha=PR_HEAD`, `merge_method=merge`, после повторной проверки аккаунта, ruleset,
+head и checks. Само это исключение не разрешает admin override, bypass CI или
+его перенос на frontend/других участников; отдельную инструкцию владельца оценивай
+по порядку выше.
 
 ## 5. Задача без PR
 
@@ -272,7 +400,9 @@ gh issue close 3 -R Cringe-Driven-Development-Team/figma --comment "Принят
 
 Проверки выполняются в командном репозитории. В учебном Actions выключены; туда
 копируется история main с теми же SHA и деревьями, без новых PR, ревью и runs.
-Merge закрывает связанную задачу независимо от последующего результата sync.
+Backend merge закрывает связанную задачу. Frontend после merge остаётся открытым
+в Ready for build; Release/CD и закрытие проверяются отдельно (§7). Результат sync
+не меняет момент закрытия задачи.
 
 Примеры — Bash (Linux/WSL). Выбери область и фактический merge SHA из PR:
 
@@ -315,7 +445,8 @@ test "$PRIMARY_SHA" = "$COURSE_SHA"
 Сначала сверь текущие main: если новый SHA уже синхронизирован, старый run повторять
 не нужно. Иначе прочитай лог упавшего sync; исправление доступа или истории бери из
 [runbook](https://github.com/Cringe-Driven-Development-Team/.github/blob/main/docs/migrations/team-repositories-runbook.md).
-PR остаётся merged, задача — closed; не переоткрывай их ради повторного копирования.
+PR остаётся merged; состояние issue определяется её lifecycle: backend обычно closed,
+frontend до CD обычно open. Не закрывай и не переоткрывай issue ради повторного копирования.
 
 Для повтора того же CI run возьми databaseId именно job course-sync / sync:
 
@@ -356,3 +487,84 @@ main; при невозможном fast-forward разбери расхожде
 уведомлений. Ошибка чтения истории или доставки recovery видна в job как warning;
 сам sync может быть успешным. Условия и устройство общей автоматики —
 [README .github](https://github.com/Cringe-Driven-Development-Team/.github/blob/main/README.md).
+
+
+## 7. Frontend: Release, production и восстановление задач
+
+`Ready for build` после merge и `Ready for release` после публикации — открытые
+задачи. Release подтверждает готовность артефактов, а не работу production.
+Штатное `completed` / `Done` требует Health check и сохранённого production success.
+Ручной completed до CD остаётся Done; ручной reopen после merge защищён от его
+повторов. Новый связанный merge после reopen начинает новый цикл.
+Rollback сохраняет закрытость и ставит `Rollback from production`; следующий
+успешный CD возвращает Done. Поздние merge/closed не перезаписывают новый результат.
+
+### Проверить выпуск и production
+
+```bash
+RELEASE_REPO=Cringe-Driven-Development-Team/frontend
+RELEASE_SHA='полный SHA выпуска, не обязательно текущего main'
+DEPLOYMENT_ID='ID проверяемой production-операции'
+gh release view "release-$RELEASE_SHA" -R "$RELEASE_REPO" \
+  --json tagName,isDraft,isPrerelease,publishedAt,url,assets
+gh api "repos/$RELEASE_REPO/deployments/$DEPLOYMENT_ID" \
+  --jq '{id,sha,environment,task,payload,created_at}'
+gh api "repos/$RELEASE_REPO/deployments/$DEPLOYMENT_ID/statuses?per_page=100" \
+  --jq '.[0] | {state,created_at,log_url,environment_url}'
+gh api --paginate "repos/$RELEASE_REPO/deployments?environment=production&per_page=100" \
+  --jq '.[] | {id,sha,task,created_at,payload}'
+```
+
+Для исходного и последнего production Deployment проверь latest status, SHA,
+`environment=production`, `task`/`payload.action` (`deploy` или `rollback`), ссылку
+`payload.run` и соответствие Release. Из этой ссылки возьми RUN_ID и проверь
+именно этот run/attempt, jobs Health check, Production result и Update release issues:
+
+```bash
+PRODUCTION_RUN_ID='ID из payload.run'
+gh run view "$PRODUCTION_RUN_ID" -R "$RELEASE_REPO" \
+  --json event,workflowName,headSha,status,conclusion,jobs,url
+```
+
+SHA запуска CD может быть SHA workflow на main; целевой выпуск определяется
+Deployment и Release. Один зелёный Health check при сбое записи production success
+не даёт Done. Красный общий run из-за Update release issues тоже не отменяет
+подтверждённый production success: сообщи оба результата отдельно.
+
+### Восстановить задачи без повторной выкатки
+
+При поручении восстановить статусы сначала прочитай ошибку Update release issues.
+Нужен исходный успешный production Deployment ID. Проверь также последнюю попытку:
+пока она незавершённая или неуспешная, recovery не должен менять карточки.
+Если появился более новый успешный deployment, не подменяй исходный ID: recovery
+проверяет обе операции и актуальные состояния задач, пропуская уже неактуальные
+изменения. Проверяй `changed`, `skipped`, `errors`, а не обещай обновить каждую задачу.
+
+```bash
+gh workflow run reconcile-issues.yml -R "$RELEASE_REPO" --ref main \
+  -f "deployment_id=$DEPLOYMENT_ID"
+gh run list -R "$RELEASE_REPO" --workflow reconcile-issues.yml \
+  --event workflow_dispatch --branch main \
+  --json databaseId,createdAt,status,conclusion,url
+```
+
+Сопоставь новый run с временем запуска и переданным input, затем проверь его:
+
+```bash
+RECOVERY_RUN_ID='ID запущенного recovery'
+ISSUE_NUMBER='номер затронутой задачи'
+gh run view "$RECOVERY_RUN_ID" -R "$RELEASE_REPO" --json jobs,conclusion,url
+gh run view "$RECOVERY_RUN_ID" -R "$RELEASE_REPO" --log
+gh api "repos/$RELEASE_REPO/issues/$ISSUE_NUMBER" --jq '{state,state_reason}'
+gh issue view "$ISSUE_NUMBER" -R "$RELEASE_REPO" --json projectItems
+```
+
+Сверь фактический `Status` карточки проекта Scrumban (§3). Без подтверждённого
+production success диагностируй исходный CD; не запускай recovery, не рисуй success
+и не закрывай issue вручную. Recovery не делает deploy, повторный Health check
+или course-sync. Отдельное поручение на merge не разрешает запуск CD.
+
+Источники актуального контракта: [CONTRIBUTING](https://github.com/Cringe-Driven-Development-Team/.github/blob/main/CONTRIBUTING.md),
+[CD](https://github.com/Cringe-Driven-Development-Team/frontend/blob/main/.github/workflows/cd.yml),
+[reconcile-issues](https://github.com/Cringe-Driven-Development-Team/frontend/blob/main/.github/workflows/reconcile-issues.yml),
+[проверка production](https://github.com/Cringe-Driven-Development-Team/frontend/blob/main/scripts/release/deployments.ts).
