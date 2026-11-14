@@ -31,7 +31,7 @@ for h in "## 1. Шаблон описания задачи" "## 2. Задача 
   need REFERENCE.md "$h"
 done
 for s in "## Цель" "## Что сделать" "## Приёмка" "sub_issue_id" "gh project item-add" \
-         "gh project item-edit" "--iteration-id" "closingIssuesReferences" \
+         "gh project item-edit" "closingIssuesReferences" \
          "gh auth refresh -s project" "reconcile-issues.yml" \
          "deployment_id=" "--match-head-commit"; do
   need REFERENCE.md "$s"
@@ -43,6 +43,9 @@ for scenario in multi-repo-task next-sprint post-merge-sync merge-authorization 
     [ -f "$path" ] || { echo "нет $path"; fail=1; }
   done
 done
+
+# Упакованный скрипт должен запускаться через интерпретатор без доступа к API.
+python3 scripts/set_sprint.py --help >/dev/null || fail=1
 
 # id полей и итераций в документах не зашиваем: они меняются.
 if grep -nE 'PVT(I|SSF|IF)?_[A-Za-z0-9_-]{10,}' SKILL.md REFERENCE.md; then
