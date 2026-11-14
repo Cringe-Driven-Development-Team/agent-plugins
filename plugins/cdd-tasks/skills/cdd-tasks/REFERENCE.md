@@ -240,7 +240,8 @@ gh pr view <номер> -R <репозиторий> --json closingIssuesReferenc
 Пустой список при строке `Closes …` — проверить номер задачи и репозиторий PR.
 При `Part of …` пустой список — норма.
 
-Задача закрывается при мерже в ветку по умолчанию. Frontend и backend требуют
+Frontend issue штатно закрывает успешный CD (§7), backend и остальные — merge
+закрывающего PR в default branch. Frontend и backend требуют
 апрува ментора, в том числе после переноса в командную организацию. По отдельному
 решению владельца `YarikMix` может обычным merge принять backend PR без Approve,
 включая свой. Перед merge проверь authenticated account и действующий персональный
@@ -272,7 +273,9 @@ gh issue close 3 -R Cringe-Driven-Development-Team/figma --comment "Принят
 
 Проверки выполняются в командном репозитории. В учебном Actions выключены; туда
 копируется история main с теми же SHA и деревьями, без новых PR, ревью и runs.
-Merge закрывает связанную задачу независимо от последующего результата sync.
+Backend merge закрывает связанную задачу. Frontend после merge остаётся открытым
+в Ready for build; Release/CD и закрытие проверяются отдельно (§7). Результат sync
+не меняет момент закрытия задачи.
 
 Примеры — Bash (Linux/WSL). Выбери область и фактический merge SHA из PR:
 
@@ -315,7 +318,8 @@ test "$PRIMARY_SHA" = "$COURSE_SHA"
 Сначала сверь текущие main: если новый SHA уже синхронизирован, старый run повторять
 не нужно. Иначе прочитай лог упавшего sync; исправление доступа или истории бери из
 [runbook](https://github.com/Cringe-Driven-Development-Team/.github/blob/main/docs/migrations/team-repositories-runbook.md).
-PR остаётся merged, задача — closed; не переоткрывай их ради повторного копирования.
+PR остаётся merged; состояние issue определяется её lifecycle: backend обычно closed,
+frontend до CD обычно open. Не закрывай и не переоткрывай issue ради повторного копирования.
 
 Для повтора того же CI run возьми databaseId именно job course-sync / sync:
 
@@ -356,3 +360,84 @@ main; при невозможном fast-forward разбери расхожде
 уведомлений. Ошибка чтения истории или доставки recovery видна в job как warning;
 сам sync может быть успешным. Условия и устройство общей автоматики —
 [README .github](https://github.com/Cringe-Driven-Development-Team/.github/blob/main/README.md).
+
+
+## 7. Frontend: Release, production и восстановление задач
+
+`Ready for build` после merge и `Ready for release` после публикации — открытые
+задачи. Release подтверждает готовность артефактов, а не работу production.
+Штатное `completed` / `Done` требует Health check и сохранённого production success.
+Ручной completed до CD остаётся Done; ручной reopen после merge защищён от его
+повторов. Новый связанный merge после reopen начинает новый цикл.
+Rollback сохраняет закрытость и ставит `Rollback from production`; следующий
+успешный CD возвращает Done. Поздние merge/closed не перезаписывают новый результат.
+
+### Проверить выпуск и production
+
+```bash
+RELEASE_REPO=Cringe-Driven-Development-Team/frontend
+RELEASE_SHA='полный SHA выпуска, не обязательно текущего main'
+DEPLOYMENT_ID='ID проверяемой production-операции'
+gh release view "release-$RELEASE_SHA" -R "$RELEASE_REPO" \
+  --json tagName,isDraft,isPrerelease,publishedAt,url,assets
+gh api "repos/$RELEASE_REPO/deployments/$DEPLOYMENT_ID" \
+  --jq '{id,sha,environment,task,payload,created_at}'
+gh api "repos/$RELEASE_REPO/deployments/$DEPLOYMENT_ID/statuses?per_page=100" \
+  --jq '.[0] | {state,created_at,log_url,environment_url}'
+gh api --paginate "repos/$RELEASE_REPO/deployments?environment=production&per_page=100" \
+  --jq '.[] | {id,sha,task,created_at,payload}'
+```
+
+Для исходного и последнего production Deployment проверь latest status, SHA,
+`environment=production`, `task`/`payload.action` (`deploy` или `rollback`), ссылку
+`payload.run` и соответствие Release. Из этой ссылки возьми RUN_ID и проверь
+именно этот run/attempt, jobs Health check, Production result и Update release issues:
+
+```bash
+PRODUCTION_RUN_ID='ID из payload.run'
+gh run view "$PRODUCTION_RUN_ID" -R "$RELEASE_REPO" \
+  --json event,workflowName,headSha,status,conclusion,jobs,url
+```
+
+SHA запуска CD может быть SHA workflow на main; целевой выпуск определяется
+Deployment и Release. Один зелёный Health check при сбое записи production success
+не даёт Done. Красный общий run из-за Update release issues тоже не отменяет
+подтверждённый production success: сообщи оба результата отдельно.
+
+### Восстановить задачи без повторной выкатки
+
+При поручении восстановить статусы сначала прочитай ошибку Update release issues.
+Нужен исходный успешный production Deployment ID. Проверь также последнюю попытку:
+пока она незавершённая или неуспешная, recovery не должен менять карточки.
+Если появился более новый успешный deployment, не подменяй исходный ID: recovery
+проверяет обе операции и актуальные состояния задач, пропуская уже неактуальные
+изменения. Проверяй `changed`, `skipped`, `errors`, а не обещай обновить каждую задачу.
+
+```bash
+gh workflow run reconcile-issues.yml -R "$RELEASE_REPO" --ref main \
+  -f "deployment_id=$DEPLOYMENT_ID"
+gh run list -R "$RELEASE_REPO" --workflow reconcile-issues.yml \
+  --event workflow_dispatch --branch main \
+  --json databaseId,createdAt,status,conclusion,url
+```
+
+Сопоставь новый run с временем запуска и переданным input, затем проверь его:
+
+```bash
+RECOVERY_RUN_ID='ID запущенного recovery'
+ISSUE_NUMBER='номер затронутой задачи'
+gh run view "$RECOVERY_RUN_ID" -R "$RELEASE_REPO" --json jobs,conclusion,url
+gh run view "$RECOVERY_RUN_ID" -R "$RELEASE_REPO" --log
+gh api "repos/$RELEASE_REPO/issues/$ISSUE_NUMBER" --jq '{state,state_reason}'
+gh issue view "$ISSUE_NUMBER" -R "$RELEASE_REPO" --json projectItems
+```
+
+Сверь фактический `Status` карточки проекта Scrumban (§3). Без подтверждённого
+production success диагностируй исходный CD; не запускай recovery, не рисуй success
+и не закрывай issue вручную. Recovery не делает deploy, повторный Health check
+или course-sync. Отдельное поручение на merge не разрешает запуск CD.
+
+Источники актуального контракта: [CONTRIBUTING](https://github.com/Cringe-Driven-Development-Team/.github/blob/main/CONTRIBUTING.md),
+[CD](https://github.com/Cringe-Driven-Development-Team/frontend/blob/main/.github/workflows/cd.yml),
+[reconcile-issues](https://github.com/Cringe-Driven-Development-Team/frontend/blob/main/.github/workflows/reconcile-issues.yml),
+[проверка production](https://github.com/Cringe-Driven-Development-Team/frontend/blob/main/scripts/release/deployments.ts).
